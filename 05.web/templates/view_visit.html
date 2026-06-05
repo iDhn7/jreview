@@ -1,0 +1,58 @@
+<div class="card">
+      <div class="card-title">추천 방문 시기</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: var(--primary-light); border: 1px solid #F0C9A8; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+          <div style="font-size: 1.4rem;">🏆</div>
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">최적 방문 시기</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text);">10월 · 11월 · 4월</div>
+            <div style="font-size: 11px; color: var(--text-3); margin-top: 1px;">긍정 비율 89% 이상, 대기시간 언급 낮음</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+          <div style="font-size: 11px; font-weight: 600; color: var(--text-3); margin-bottom: 2px;">월별 방문 추천도</div>
+          <div id="visitBars"></div>
+        </div>
+        <div style="background: var(--neg-bg); border: 1px solid #FECACA; border-radius: 8px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px;">
+          <span style="font-size: 1rem; flex-shrink: 0;">⚠️</span>
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--neg); margin-bottom: 2px;">혼잡 주의 시기</div>
+            <div style="font-size: 12px; color: var(--text-2); line-height: 1.5;">7월~8월 여름 성수기 및 주말은 대기 리뷰 빈도 3배 증가. 평일 오전 방문 권장.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 계절별 리뷰 분석 (추천 방문 시기와 같은 행) -->
+    <div class="card">
+      <div class="card-title">계절별 리뷰 수 및 긍·부정 비율</div>
+      <div style="position: relative; width: 100%; height: 160px; margin-bottom: 14px;">
+        <canvas id="seasonChart" role="img" aria-label="계절별 리뷰 수 막대 차트">봄 여름 가을 겨울 계절별 리뷰 분포입니다.</canvas>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background: #EAF3DE; border: 1px solid #C0DD97; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">🌸</div>
+          <div style="font-size: 12px; font-weight: 700; color: #3B6D11;">봄 (3–5월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: #3B6D11; font-family: 'Noto Serif KR', serif;">88%</div>
+          <div style="font-size: 11px; color: #639922;">긍정 · 리뷰 312개</div>
+        </div>
+        <div style="background: #FEF9ED; border: 1px solid #FAC775; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">☀️</div>
+          <div style="font-size: 12px; font-weight: 700; color: #854F0B;">여름 (6–8월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: #854F0B; font-family: 'Noto Serif KR', serif;">64%</div>
+          <div style="font-size: 11px; color: #BA7517;">긍정 · 리뷰 428개</div>
+        </div>
+        <div style="background: var(--primary-light); border: 1px solid #F0C9A8; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">🍂</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--primary-dark);">가을 (9–11월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: var(--primary); font-family: 'Noto Serif KR', serif;">91%</div>
+          <div style="font-size: 11px; color: var(--primary);">긍정 · 리뷰 389개</div>
+        </div>
+        <div style="background: #EEF4FB; border: 1px solid #B5D4F4; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">❄️</div>
+          <div style="font-size: 12px; font-weight: 700; color: #185FA5;">겨울 (12–2월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: #185FA5; font-family: 'Noto Serif KR', serif;">79%</div>
+          <div style="font-size: 11px; color: #378ADD;">긍정 · 리뷰 114개</div>
+        </div>
+      </div>
+    </div>

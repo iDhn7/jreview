@@ -1,0 +1,30 @@
+<div class="business-section">
+      <!-- section-header (업체 목록 등) 숨김 처리 -->
+      <div class="section-header" style="display: none;">
+        <div class="section-title">업체 목록</div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="font-size: 12px; color: var(--text-3);">총 1,247개 업체</span>
+        </div>
+      </div>
+
+      <div class="filter-bar" style="justify-content: flex-end;">
+        <!-- 카테고리 칩 숨김 처리 -->
+        <div style="display: none;">
+          <span class="filter-chip active" onclick="setFilter(this,'전체')">전체</span>
+          <span class="filter-chip" onclick="setFilter(this,'한식')">🍚 한식</span>
+          <span class="filter-chip" onclick="setFilter(this,'카페')">☕ 카페</span>
+          <span class="filter-chip" onclick="setFilter(this,'숙박')">🛏 숙박</span>
+          <span class="filter-chip" onclick="setFilter(this,'관광지')">🏯 관광지</span>
+          <span class="filter-chip" onclick="setFilter(this,'체험')">🎨 체험</span>
+        </div>
+        <div style="margin-left: auto; font-size: 12px; color: var(--text-3);">
+          정렬: <select style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Pretendard', sans-serif; cursor: pointer;">
+            <option>긍정 비율순</option>
+            <option>리뷰 많은순</option>
+            <option>최근 갱신순</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="business-grid" id="businessGrid"></div>
+    </div>
