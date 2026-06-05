@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전주 리뷰 인사이트 — 여행객을 위한 업체 분석 서비스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #F5F0E8;
+    --bg2: #FFFDF8;
+    --surface: #FFFFFF;
+    --primary: #C8530A;
+    --primary-light: #F5E6DC;
+    --primary-dark: #8B3506;
+    --accent: #2B5C3F;
+    --accent-light: #E0EDE5;
+    --text: #1A1208;
+    --text-2: #5C4A2A;
+    --text-3: #9C8A6A;
+    --border: #E8DCC8;
+    --border-2: #D4C4A8;
+    --pos: #1A7A4A;
+    --pos-bg: #E6F5ED;
+    --neg: #C0392B;
+    --neg-bg: #FAE8E6;
+    --shadow: 0 2px 12px rgba(60,30,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(60,30,0,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .nav-logo span { color: var(--text); font-weight: 400; }
+  .nav-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 600;
+  }
+  .nav-right { display: flex; gap: 8px; align-items: center; }
+  .nav-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all .2s;
+    width: 200px;
+  }
+  .nav-search:hover { border-color: var(--border-2); }
+
+  /* PAGE SYSTEM */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero {
+    background: var(--primary);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L55 50 L5 50 Z' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='1'/%3E%3C/svg%3E") repeat;
+  }
+  .hero-tag {
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 100px;
+    display: inline-block;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  .hero p {
+    color: rgba(255,255,255,0.8);
+    font-size: 1rem;
+    font-weight: 300;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  /* ===== RAG 검색 UI ===== */
+  .rag-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .rag-box {
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.25);
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .rag-box:focus-within {
+    border-color: rgba(255,255,255,0.75);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  }
+
+  /* 입력 행 */
+  .rag-input-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rag-input-icon { font-size: 17px; flex-shrink: 0; opacity: 0.45; }
+  .rag-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14.5px;
+    font-family: 'Pretendard', sans-serif;
+    color: var(--text);
+    background: transparent;
+  }
+  .rag-input::placeholder { color: var(--text-3); }
+  .rag-submit {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Pretendard', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background .15s, transform .1s;
+    flex-shrink: 0;
+  }
+  .rag-submit:hover { background: var(--primary-dark); }
+  .rag-submit:active { transform: scale(0.97); }
+
+  /* 하단 chip 행 */
+  .rag-bottom-row {
+    display: flex;
+    align-items: center;
+    padding: 9px 16px;
+    gap: 8px;
+    background: #FAFAF7;
+  }
+  .rag-ai-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    color: var(--primary);
+    border: 1px solid rgba(200,83,10,0.3);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+  .rag-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    overflow: hidden;
+  }
+  .rag-chip {
+    font-size: 11px;
+    color: var(--text-3);
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .rag-chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  /* ===== RAG 결과 오버레이 ===== */
+
+  /* 배경 dim */
+  .rag-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 10, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .rag-overlay-backdrop.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* 오버레이 패널 — 검색창 위치에서 확장 */
+  .rag-overlay {
+    position: fixed;
+    /* 초기 상태: 화면 중앙 상단 검색창 근처에서 작게 시작 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.82);
+    width: min(92vw, 860px);
+    max-height: 82vh;
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(30,10,0,0.32), 0 0 0 1px rgba(200,83,10,0.12);
+    z-index: 910;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity   0.38s cubic-bezier(0.4,0,0.2,1),
+      transform 0.38s cubic-bezier(0.34,1.26,0.64,1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .rag-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* 오버레이 헤더 */
+  .rag-ol-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+  .rag-ol-query {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rag-ol-query span {
+    color: var(--primary);
+    font-family: 'Noto Serif KR', serif;
+  }
+  .rag-ol-badge {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--primary);
+    border: 1px solid rgba(200,83,10,0.3);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+  .rag-ol-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--text-3);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s, color .15s;
+  }
+  .rag-ol-close:hover { background: var(--neg-bg); color: var(--neg); }
+
+  /* 오버레이 본문 */
+  .rag-ol-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .rag-ol-body::-webkit-scrollbar { width: 4px; }
+  .rag-ol-body::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+  /* AI 응답 카드 */
+  .rag-ol-ai-card {
+    background: linear-gradient(135deg, var(--primary-light) 0%, #fff8f4 100%);
+    border: 1px solid rgba(200,83,10,0.18);
+    border-radius: 14px;
+    padding: 16px 18px;
+    animation: olFadeUp .4s ease both;
+  }
+  @keyframes olFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .rag-ol-ai-hd {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; color: var(--primary);
+    margin-bottom: 10px;
+  }
+  .rag-pulse {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: pulse 1.4s infinite;
+    flex-shrink: 0;
+  }
+  .rag-answer-text {
+    font-size: 13.5px;
+    color: var(--text-2);
+    line-height: 1.8;
+  }
+  .rag-answer-text .rag-highlight {
+    background: rgba(200,83,10,0.12);
+    color: var(--primary-dark);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-weight: 600;
+  }
+  .rag-ol-sources {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid rgba(200,83,10,0.15);
+  }
+  .rag-src-label {
+    font-size: 10px; color: var(--text-3); font-weight: 600;
+    align-self: center; white-space: nowrap;
+  }
+  .rag-src-chip {
+    font-size: 10px; background: white; color: var(--primary);
+    border-radius: 6px; padding: 3px 9px; cursor: pointer;
+    font-weight: 600; border: 1px solid rgba(200,83,10,0.2);
+    transition: all .15s;
+  }
+  .rag-src-chip:hover { background: var(--primary); color: white; }
+
+  /* 결과 업체 그리드 */
+  .rag-ol-results-hd {
+    font-size: 12px; font-weight: 700; color: var(--text-2);
+    display: flex; align-items: center; gap: 8px;
+    animation: olFadeUp .4s .12s ease both;
+  }
+  .rag-ol-results-hd::before {
+    content: '';
+    width: 3px; height: 14px;
+    background: var(--primary);
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .rag-ol-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    animation: olFadeUp .4s .2s ease both;
+  }
+
+  .rag-ol-user-card {
+    align-self: flex-end;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border: 1px solid rgba(200,83,10,0.18);
+    border-radius: 14px;
+    padding: 12px 16px;
+    max-width: 80%;
+    font-size: 13.5px;
+    line-height: 1.5;
+    animation: olFadeUp .3s ease both;
+    font-weight: 600;
+  }
+
+  .rag-ol-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+  .rag-ol-footer input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .rag-ol-footer input:focus { border-color: var(--primary); }
+  .rag-ol-footer button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    transition: background .15s;
+  }
+  .rag-ol-footer button:hover { background: var(--primary-dark); }
+
+  /* thinking dots */
+  .rag-thinking {
+    display: flex; gap: 4px; align-items: center; height: 20px;
+  }
+  .rag-thinking span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--primary); opacity: 0.3;
+    animation: thinkBounce 1.1s infinite;
+  }
+  .rag-thinking span:nth-child(2) { animation-delay: .18s; }
+  .rag-thinking span:nth-child(3) { animation-delay: .36s; }
+  @keyframes thinkBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.3; }
+    40% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* 카테고리 quick-tag */
+  .search-tags {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .search-tag {
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .search-tag:hover { background: rgba(255,255,255,0.25); }
+
+  /* STATS BAR - 제거됨 */
+
+  /* RAG 검색창 */
+  .rag-search-wrap {
+    max-width: 620px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .rag-search-box {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: border-color .2s;
+  }
+  .rag-search-box:focus-within {
+    border-color: rgba(255,255,255,0.7);
+  }
+  .rag-search-top {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rag-search-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+  .rag-search-top input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    color: var(--text);
+    background: transparent;
+  }
+  .rag-search-top input::placeholder { color: var(--text-3); }
+  .rag-send-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .rag-send-btn:hover { background: var(--primary-dark); }
+  .rag-search-bottom {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 8px;
+    background: #FAFAF8;
+  }
+  .rag-ai-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 6px;
+    padding: 3px 7px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .rag-example-chips {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .rag-chip {
+    font-size: 11px;
+    color: var(--text-3);
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .rag-chip:hover { border-color: var(--primary); color: var(--primary); }
+  .rag-answer-box {
+    display: none;
+    background: white;
+    border-radius: 0 0 14px 14px;
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+  .rag-answer-box.visible { display: block; }
+  .rag-answer-header {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .rag-answer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 1.5s infinite; }
+  .rag-sources {
+    display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
+  }
+  .rag-source-chip {
+    font-size: 10px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 6px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .rag-source-chip:hover { background: var(--primary); color: white; }
+
+  /* MAIN CONTENT */
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* TREND SECTION */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .section-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .section-more {
+    font-size: 12px;
+    color: var(--text-3);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .15s;
+  }
+  .section-more:hover { color: var(--primary); }
+
+  /* TREND CARDS */
+  .trend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 960px) {
+    .trend-grid { grid-template-columns: 1fr 1fr; }
+    .trend-grid .card:first-child { grid-column: 1 / -1; }
+  }
+  .region-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .region-row:last-child { border-bottom: none; }
+  .region-name { width: 68px; font-weight: 500; color: var(--text); flex-shrink: 0; font-size: 12px; }
+  .region-bar-wrap { flex: 1; height: 14px; background: var(--bg); border-radius: 3px; overflow: hidden; display: flex; }
+  .region-bar-pos { height: 100%; background: #1A7A4A; border-radius: 3px 0 0 3px; }
+  .region-bar-neg { height: 100%; background: #C0392B; border-radius: 0 3px 3px 0; }
+  .region-pct-pos { font-size: 11px; font-weight: 700; color: #1A7A4A; width: 32px; text-align: right; flex-shrink: 0; }
+  .region-pct-neg { font-size: 11px; color: #C0392B; width: 28px; flex-shrink: 0; }
+  .card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    background: #22C55E;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* WORD RANK */
+  .word-rank-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .word-rank-col { }
+  .word-rank-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .label-pos { color: var(--pos); }
+  .label-neg { color: var(--neg); }
+  .word-rank-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .word-rank-item:last-child { border-bottom: none; }
+  .rank-num {
+    width: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-align: center;
+  }
+  .rank-word { flex: 1; font-weight: 500; color: var(--text); }
+  .rank-change {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .change-up { background: #FEF3C7; color: #92400E; }
+  .change-down { background: #FEE2E2; color: #991B1B; }
+  .change-new { background: #D1FAE5; color: #065F46; }
+  .change-same { background: var(--bg); color: var(--text-3); }
+
+  /* BUSINESS LIST */
+  .business-section { margin-bottom: 2rem; }
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  .business-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .business-card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: var(--shadow);
+  }
+  .business-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+  }
+  .business-card-img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--text-3);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .img-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    font-size: 2.5rem;
+    background: var(--primary-light);
+  }
+  .biz-category-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.92);
+    color: var(--primary);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .business-card-body { padding: 1rem; }
+  .biz-name {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .biz-loc {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .biz-stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .biz-stat {
+    font-size: 12px;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sentiment-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .sentiment-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pos) 0%, var(--pos) var(--pos-pct), var(--border) var(--pos-pct));
+    border-radius: 3px;
+  }
+  .sentiment-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+  .s-pos { color: var(--pos); font-weight: 600; }
+  .s-neg { color: var(--neg); font-weight: 600; }
+
+  /* === DETAIL PAGE === */
+  .detail-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-3);
+    font-family: 'Pretendard', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 1rem;
+    transition: color .15s;
+    padding: 0;
+  }
+  .back-btn:hover { color: var(--primary); }
+  .detail-title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .detail-icon {
+    font-size: 2rem;
+    background: var(--primary-light);
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .detail-info { flex: 1; }
+  .detail-name {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .detail-meta {
+    font-size: 13px;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .detail-meta-sep { color: var(--border-2); }
+  .rating-stars { color: #F59E0B; }
+
+  .detail-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .detail-full { grid-column: 1 / -1; }
+
+  /* SENTIMENT PIE */
+  .sentiment-big {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .pie-wrap {
+    position: relative;
+    width: 120px; height: 120px;
+    flex-shrink: 0;
+  }
+  .pie-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .pie-pct {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--pos);
+  }
+  .pie-sub { font-size: 10px; color: var(--text-3); }
+  .sentiment-legend { flex: 1; }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { color: var(--text-2); flex: 1; }
+  .legend-val { font-weight: 600; color: var(--text); }
+
+  /* WORDCLOUD */
+  .wordcloud-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0;
+    min-height: 120px;
+  }
+  .wc-word {
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+    cursor: default;
+    transition: transform .15s;
+    white-space: nowrap;
+  }
+  .wc-word:hover { transform: scale(1.08); }
+
+  /* TREND WORDS */
+  .trend-words-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .trend-word-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .trend-date {
+    font-size: 11px;
+    color: var(--text-3);
+    width: 70px;
+    flex-shrink: 0;
+  }
+  .trend-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .trend-tag-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .trend-tag-pos { background: var(--pos-bg); border-color: #A7F3D0; color: var(--pos); }
+  .trend-tag-neg { background: var(--neg-bg); border-color: #FECACA; color: var(--neg); }
+
+  /* MAP PLACEHOLDER */
+  .map-placeholder {
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-3);
+    font-size: 13px;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(200,83,10,0.04) 10px,
+      rgba(200,83,10,0.04) 11px
+    );
+  }
+  .map-icon { font-size: 2rem; }
+  .map-address {
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 500;
+    z-index: 1;
+  }
+  .map-open-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    z-index: 1;
+    transition: background .15s;
+  }
+  .map-open-btn:hover { background: var(--primary-dark); }
+
+  /* REPORT */
+  .report-list { display: flex; flex-direction: column; gap: 10px; }
+  .report-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+  }
+  .report-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .report-icon.warn { background: #FEF3C7; }
+  .report-icon.good { background: var(--pos-bg); }
+  .report-text { flex: 1; }
+  .report-label { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .report-desc { color: var(--text-3); font-size: 12px; line-height: 1.5; }
+
+  /* REVIEW SAMPLES */
+  .review-list { display: flex; flex-direction: column; gap: 10px; }
+  .review-item {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    border-left: 3px solid;
+  }
+  .review-pos { background: var(--pos-bg); border-color: var(--pos); }
+  .review-neg { background: var(--neg-bg); border-color: var(--neg); }
+  .review-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .review-pos .review-label { color: var(--pos); }
+  .review-neg .review-label { color: var(--neg); }
+
+  /* FOOTER */
+  footer {
+    background: var(--text);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 12px;
+    margin-top: 3rem;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .trend-grid { grid-template-columns: 1fr; }
+    .detail-content { grid-template-columns: 1fr; }
+    .detail-full { grid-column: auto; }
+    .hero h1 { font-size: 1.5rem; }
+    .stats-bar { gap: 1rem; }
+    .stat-divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <a class="nav-logo" onclick="showPage('main')">
+    <span>전주</span>리뷰인사이트
+    <span class="nav-badge">BETA</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-search-wrap" style="position:relative; display:flex; align-items:center;">
+      <span style="position:absolute; left:10px; font-size:13px; pointer-events:none; z-index:1;">🔍</span>
+      <input
+        id="navSearchInput"
+        type="text"
+        placeholder="업체명 또는 키워드 검색"
+        style="
+          background: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 6px 12px 6px 30px;
+          font-size: 13px;
+          font-family: 'Pretendard', sans-serif;
+          color: var(--text);
+          width: 210px;
+          outline: none;
+          transition: border-color .2s, width .3s;
+          cursor: text;
+        "
+        onfocus="this.style.borderColor='var(--primary)'; this.style.width='260px';"
+        onblur="this.style.borderColor='var(--border)'; this.style.width='210px';"
+        onkeydown="if(event.key==='Enter') navSearch(this.value)"
+      >
+      <button
+        onclick="navSearch(document.getElementById('navSearchInput').value)"
+        style="
+          background: var(--primary);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 700;
+          font-family: 'Pretendard', sans-serif;
+          cursor: pointer;
+          margin-left: 6px;
+          white-space: nowrap;
+          transition: background .15s;
+        "
+        onmouseover="this.style.background='var(--primary-dark)'"
+        onmouseout="this.style.background='var(--primary)'"
+      >검색</button>
+    </div>
+  </div>
+</nav>
+
+<!-- =============== MAIN PAGE =============== -->
+<div class="page active" id="page-main">
+
+  <!-- HERO: RAG 검색 + 통계 통합 -->
+  <div class="hero">
+    <div class="hero-tag">📍 전주 여행객 맞춤 리뷰 분석</div>
+    <h1>전주 업체의 진짜 후기를<br>AI가 분석해드립니다</h1>
+    <p>수천 개의 리뷰를 분석해 진짜 정보만 전달하는 여행 인사이트 서비스</p>
+
+    <!-- RAG 검색 UI -->
+    <div class="rag-wrap">
+      <div class="rag-box" id="ragBox">
+
+        <!-- 입력 행 -->
+        <div class="rag-input-row">
+          <span class="rag-input-icon">✦</span>
+          <input class="rag-input" type="text" id="ragInput"
+            placeholder="전주 한옥마을 근처 조용한 카페 추천해줘..."
+            onkeydown="if(event.key==='Enter') ragSearch()">
+          <button class="rag-submit" onclick="ragSearch()">
+            <span>AI 검색</span>
+            <span style="font-size:15px;">→</span>
+          </button>
+        </div>
+
+        <!-- 추천 질문 chip -->
+        <div class="rag-bottom-row">
+          <span class="rag-ai-label">RAG AI</span>
+          <div class="rag-chips">
+            <span class="rag-chip" onclick="ragPreset(this)">주차 가능한 한식당은?</span>
+            <span class="rag-chip" onclick="ragPreset(this)">리뷰 많은 카페 TOP3</span>
+            <span class="rag-chip" onclick="ragPreset(this)">아이와 함께 가기 좋은 곳</span>
+            <span class="rag-chip" onclick="ragPreset(this)">한옥마을 야경 맛집</span>
+          </div>
+        </div>
+
+        <!-- AI 응답은 오버레이로 이동됨 -->
+
+      </div>
+    </div>
+
+    <!-- 카테고리 quick-tag -->
+    <div class="search-tags">
+      <span class="search-tag" onclick="filterCategory('한식')">🍚 한식</span>
+      <span class="search-tag" onclick="filterCategory('카페')">☕ 카페</span>
+      <span class="search-tag" onclick="filterCategory('한옥마을')">🏯 한옥마을</span>
+      <span class="search-tag" onclick="filterCategory('숙박')">🛏 숙박</span>
+      <span class="search-tag" onclick="filterCategory('체험')">🎨 체험</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- BUSINESS LIST -->
+    <div class="business-section">
+      <!-- section-header (업체 목록 등) 숨김 처리 -->
+      <div class="section-header" style="display: none;">
+        <div class="section-title">업체 목록</div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="font-size: 12px; color: var(--text-3);">총 1,247개 업체</span>
+        </div>
+      </div>
+
+      <div class="filter-bar" style="justify-content: flex-end;">
+        <!-- 카테고리 칩 숨김 처리 -->
+        <div style="display: none;">
+          <span class="filter-chip active" onclick="setFilter(this,'전체')">전체</span>
+          <span class="filter-chip" onclick="setFilter(this,'한식')">🍚 한식</span>
+          <span class="filter-chip" onclick="setFilter(this,'카페')">☕ 카페</span>
+          <span class="filter-chip" onclick="setFilter(this,'숙박')">🛏 숙박</span>
+          <span class="filter-chip" onclick="setFilter(this,'관광지')">🏯 관광지</span>
+          <span class="filter-chip" onclick="setFilter(this,'체험')">🎨 체험</span>
+        </div>
+        <div style="margin-left: auto; font-size: 12px; color: var(--text-3);">
+          정렬: <select style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Pretendard', sans-serif; cursor: pointer;">
+            <option>긍정 비율순</option>
+            <option>리뷰 많은순</option>
+            <option>최근 갱신순</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="business-grid" id="businessGrid"></div>
+    </div>
+
+    <!-- TREND SECTION (업체 목록 아래) -->
+    <div class="section-header" style="margin-top: 2rem;">
+      <div class="section-title">전주 트렌드 분석</div>
+    </div>
+    <div class="trend-grid">
+      <!-- 지역별 긍부정 평가 -->
+      <div class="card">
+        <div class="card-title">지역별 긍·부정 평가 <span style="color: var(--text-3); font-weight: 400; font-size: 11px;">전주 권역</span></div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 11px;">
+          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#1A7A4A;display:inline-block;"></span>긍정</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#C0392B;display:inline-block;"></span>부정</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">한옥마을</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:82%"></div><div class="region-bar-neg" style="width:18%"></div></div>
+          <span class="region-pct-pos">82%</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">전동·풍남동</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:78%"></div><div class="region-bar-neg" style="width:22%"></div></div>
+          <span class="region-pct-pos">78%</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">서학동</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:75%"></div><div class="region-bar-neg" style="width:25%"></div></div>
+          <span class="region-pct-pos">75%</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">객사·중앙동</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:71%"></div><div class="region-bar-neg" style="width:29%"></div></div>
+          <span class="region-pct-pos">71%</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">덕진구</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:69%"></div><div class="region-bar-neg" style="width:31%"></div></div>
+          <span class="region-pct-pos">69%</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">효자동</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:66%"></div><div class="region-bar-neg" style="width:34%"></div></div>
+          <span class="region-pct-pos">66%</span>
+        </div>
+        <div class="region-row">
+          <span class="region-name">완산구 기타</span>
+          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:63%"></div><div class="region-bar-neg" style="width:37%"></div></div>
+          <span class="region-pct-pos">63%</span>
+        </div>
+      </div>
+
+      <!-- 긍부정 키워드 순위 -->
+      <div class="card">
+        <div class="card-title">트렌드 키워드 순위 변화 <span style="color: var(--text-3); font-weight: 400; font-size: 11px;">오늘 기준</span></div>
+        <div class="word-rank-grid">
+          <div class="word-rank-col">
+            <div class="word-rank-label label-pos">▲ 긍정 키워드</div>
+            <div class="word-rank-item"><span class="rank-num">1</span><span class="rank-word">맛있어요</span><span class="rank-change change-same">—</span></div>
+            <div class="word-rank-item"><span class="rank-num">2</span><span class="rank-word">분위기</span><span class="rank-change change-up">▲2</span></div>
+            <div class="word-rank-item"><span class="rank-num">3</span><span class="rank-word">친절</span><span class="rank-change change-up">▲1</span></div>
+            <div class="word-rank-item"><span class="rank-num">4</span><span class="rank-word">깔끔한</span><span class="rank-change change-same">—</span></div>
+            <div class="word-rank-item"><span class="rank-num">5</span><span class="rank-word">인생샷</span><span class="rank-change change-new">NEW</span></div>
+          </div>
+          <div class="word-rank-col">
+            <div class="word-rank-label label-neg">▼ 부정 키워드</div>
+            <div class="word-rank-item"><span class="rank-num">1</span><span class="rank-word">대기시간</span><span class="rank-change change-same">—</span></div>
+            <div class="word-rank-item"><span class="rank-num">2</span><span class="rank-word">주차</span><span class="rank-change change-down">▼1</span></div>
+            <div class="word-rank-item"><span class="rank-num">3</span><span class="rank-word">가격</span><span class="rank-change change-up">▲1</span></div>
+            <div class="word-rank-item"><span class="rank-num">4</span><span class="rank-word">서비스</span><span class="rank-change change-same">—</span></div>
+            <div class="word-rank-item"><span class="rank-num">5</span><span class="rank-word">좁음</span><span class="rank-change change-new">NEW</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 일별 트렌드 단어 -->
+      <div class="card">
+        <div class="card-title">
+          <div class="live-dot"></div>
+          일별 트렌드 단어
+          <span style="color: var(--text-3); font-weight: 400; font-size: 11px; margin-left: auto;">전주 전체</span>
+        </div>
+        <div class="trend-words-grid">
+          <div class="trend-word-row">
+            <span class="trend-date">12월 27일</span>
+            <div class="trend-tags">
+              <span class="trend-tag-item trend-tag-pos">한옥거리</span>
+              <span class="trend-tag-item trend-tag-pos">포토스팟</span>
+              <span class="trend-tag-item trend-tag-neg">주차혼잡</span>
+            </div>
+          </div>
+          <div class="trend-word-row">
+            <span class="trend-date">12월 26일</span>
+            <div class="trend-tags">
+              <span class="trend-tag-item trend-tag-pos">연말분위기</span>
+              <span class="trend-tag-item trend-tag-pos">데이트</span>
+            </div>
+          </div>
+          <div class="trend-word-row">
+            <span class="trend-date">12월 25일</span>
+            <div class="trend-tags">
+              <span class="trend-tag-item trend-tag-pos">크리스마스</span>
+              <span class="trend-tag-item trend-tag-neg">웨이팅길다</span>
+            </div>
+          </div>
+          <div class="trend-word-row">
+            <span class="trend-date">12월 24일</span>
+            <div class="trend-tags">
+              <span class="trend-tag-item trend-tag-pos">전동성당야경</span>
+              <span class="trend-tag-item trend-tag-pos">야경맛집</span>
+            </div>
+          </div>
+          <div class="trend-word-row">
+            <span class="trend-date">12월 23일</span>
+            <div class="trend-tags">
+              <span class="trend-tag-item trend-tag-pos">비빔밥맛집</span>
+              <span class="trend-tag-item trend-tag-neg">인파많음</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    © 2025 전주 리뷰인사이트 — 전주 방문 여행객을 위한 AI 리뷰 분석 서비스 &nbsp;|&nbsp; 매일 자동 업데이트
+  </footer>
+</div>
+
+<!-- =============== DETAIL PAGE =============== -->
+<div class="page" id="page-detail">
+  <div class="detail-header">
+    <button class="back-btn" onclick="showPage('main')">← 목록으로 돌아가기</button>
+    <div class="detail-title-row">
+      <div style="display:flex; gap: 1rem; align-items: flex-start;">
+        <div class="detail-icon" id="detail-icon">🍚</div>
+        <div class="detail-info">
+          <div class="detail-name" id="detail-name">풍년제과</div>
+          <div class="detail-meta">
+            <span id="detail-category">한식</span>
+            <span class="detail-meta-sep">·</span>
+            <span class="rating-stars">★★★★☆</span>
+            <span id="detail-rating">4.2</span>
+            <span class="detail-meta-sep">·</span>
+            <span id="detail-reviews">리뷰 1,243개</span>
+            <span class="detail-meta-sep">·</span>
+            <span id="detail-location">완산구 전동</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap: 8px;">
+        <div style="background: var(--pos-bg); color: var(--pos); font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 8px;" id="detail-pos-pct">긍정 78%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-content">
+
+    <!-- 업체 정보 + 지도 (맨 위 전체 너비) -->
+    <div class="card detail-full">
+      <div class="card-title">업체 정보</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">주소</span>
+            <span style="color: var(--text-2);" id="biz-address">전북 전주시 완산구 전동 ○○길 12</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">영업시간</span>
+            <span style="color: var(--text-2);">08:00 – 22:00 (연중무휴)</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">가격대</span>
+            <span style="color: var(--text-2);">1만원 이하</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">주차</span>
+            <span style="color: var(--neg); font-weight: 500;">불가 (인근 공용주차장 이용)</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">전화</span>
+            <span style="color: var(--text-2);">063-000-0000</span>
+          </div>
+
+          <!-- 편의성 목록 -->
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <span style="color: var(--text-3); width: 64px; flex-shrink: 0; padding-top: 2px;">편의성</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <!-- 주차: 중요 → 빨간색 굵게 강조 -->
+              <span style="
+                display: inline-flex; align-items: center; gap: 4px;
+                background: #FEE2E2;
+                border: 1.5px solid #FCA5A5;
+                color: #B91C1C;
+                font-weight: 700;
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 100px;
+              ">🅿️ 주차 불가</span>
+
+              <!-- 무선인터넷 -->
+              <span style="
+                display: inline-flex; align-items: center; gap: 4px;
+                background: var(--bg);
+                border: 1px solid var(--border-2);
+                color: var(--text-2);
+                font-weight: 500;
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 100px;
+              ">📶 무선인터넷</span>
+
+              <!-- 의자 -->
+              <span style="
+                display: inline-flex; align-items: center; gap: 4px;
+                background: var(--bg);
+                border: 1px solid var(--border-2);
+                color: var(--text-2);
+                font-weight: 500;
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 100px;
+              ">🪑 의자</span>
+            </div>
+          </div>
+        </div>
+        <div class="map-placeholder">
+          <div class="map-icon">🗺️</div>
+          <div class="map-address" id="map-address-display">전북 전주시 완산구 전동</div>
+          <button class="map-open-btn">카카오맵에서 보기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메뉴 정보 (전체 너비) -->
+    <div class="card detail-full">
+      <div class="card-title" style="justify-content: space-between;">
+        메뉴 정보
+        <span style="font-size: 11px; color: var(--text-3); font-weight: 400;">리뷰 언급 빈도 기반 정렬</span>
+      </div>
+      <div id="menuGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;"></div>
+    </div>
+
+    <!-- 긍부정 비율 + 워드클라우드 (같은 행) -->
+    <div class="card">
+      <div class="card-title">긍·부정 리뷰 비율</div>
+      <div class="sentiment-big">
+        <div class="pie-wrap">
+          <canvas id="pieChart" width="120" height="120" role="img" aria-label="긍정 78%, 부정 22% 도넛 차트"></canvas>
+          <div class="pie-center">
+            <div class="pie-pct" id="pie-pos-pct">78%</div>
+            <div class="pie-sub">긍정</div>
+          </div>
+        </div>
+        <div class="sentiment-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--pos);"></div>
+            <div class="legend-label">긍정 리뷰</div>
+            <div class="legend-val" id="legend-pos-val">968개 (78%)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--neg);"></div>
+            <div class="legend-label">부정 리뷰</div>
+            <div class="legend-val" id="legend-neg-val">275개 (22%)</div>
+          </div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+            <div style="font-size: 12px; color: var(--text-3);">분석 기간: 2025.01 ~ 2025.12</div>
+            <div style="font-size: 12px; color: var(--text-3); margin-top: 2px;">마지막 갱신: 오늘</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 워드클라우드 (긍부정 비율과 같은 행) -->
+    <div class="card">
+      <div class="card-title">리뷰 워드클라우드</div>
+      <div class="wordcloud-wrap" id="wordcloudWrap"></div>
+    </div>
+
+    <!-- 일일 긍부정 평가 추이 막대 그래프 (full-width) -->
+    <div class="card detail-full">
+      <div class="card-title" style="justify-content: space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><div class="live-dot"></div>일일 긍·부정 평가 추이 — 최근 30일</span>
+        <span style="display:flex;gap:14px;font-size:12px;font-weight:400;color:var(--text-3);">
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#1A7A4A;display:inline-block;"></span>긍정</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#C0392B;display:inline-block;"></span>부정</span>
+        </span>
+      </div>
+      <div style="position: relative; width: 100%; height: 200px;">
+        <canvas id="detailTrendChart" role="img" aria-label="업체 일별 긍정·부정 리뷰 막대 그래프"></canvas>
+      </div>
+    </div>
+
+    <!-- 추천 방문 시기 + 계절별 리뷰 분석 (같은 행) -->
+    <div class="card">
+      <div class="card-title">추천 방문 시기</div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: var(--primary-light); border: 1px solid #F0C9A8; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
+          <div style="font-size: 1.4rem;">🏆</div>
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 2px;">최적 방문 시기</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text);">10월 · 11월 · 4월</div>
+            <div style="font-size: 11px; color: var(--text-3); margin-top: 1px;">긍정 비율 89% 이상, 대기시간 언급 낮음</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+          <div style="font-size: 11px; font-weight: 600; color: var(--text-3); margin-bottom: 2px;">월별 방문 추천도</div>
+          <div id="visitBars"></div>
+        </div>
+        <div style="background: var(--neg-bg); border: 1px solid #FECACA; border-radius: 8px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px;">
+          <span style="font-size: 1rem; flex-shrink: 0;">⚠️</span>
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--neg); margin-bottom: 2px;">혼잡 주의 시기</div>
+            <div style="font-size: 12px; color: var(--text-2); line-height: 1.5;">7월~8월 여름 성수기 및 주말은 대기 리뷰 빈도 3배 증가. 평일 오전 방문 권장.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 계절별 리뷰 분석 (추천 방문 시기와 같은 행) -->
+    <div class="card">
+      <div class="card-title">계절별 리뷰 수 및 긍·부정 비율</div>
+      <div style="position: relative; width: 100%; height: 160px; margin-bottom: 14px;">
+        <canvas id="seasonChart" role="img" aria-label="계절별 리뷰 수 막대 차트">봄 여름 가을 겨울 계절별 리뷰 분포입니다.</canvas>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background: #EAF3DE; border: 1px solid #C0DD97; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">🌸</div>
+          <div style="font-size: 12px; font-weight: 700; color: #3B6D11;">봄 (3–5월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: #3B6D11; font-family: 'Noto Serif KR', serif;">88%</div>
+          <div style="font-size: 11px; color: #639922;">긍정 · 리뷰 312개</div>
+        </div>
+        <div style="background: #FEF9ED; border: 1px solid #FAC775; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">☀️</div>
+          <div style="font-size: 12px; font-weight: 700; color: #854F0B;">여름 (6–8월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: #854F0B; font-family: 'Noto Serif KR', serif;">64%</div>
+          <div style="font-size: 11px; color: #BA7517;">긍정 · 리뷰 428개</div>
+        </div>
+        <div style="background: var(--primary-light); border: 1px solid #F0C9A8; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">🍂</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--primary-dark);">가을 (9–11월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: var(--primary); font-family: 'Noto Serif KR', serif;">91%</div>
+          <div style="font-size: 11px; color: var(--primary);">긍정 · 리뷰 389개</div>
+        </div>
+        <div style="background: #EEF4FB; border: 1px solid #B5D4F4; border-radius: 8px; padding: 10px 12px;">
+          <div style="font-size: 18px; margin-bottom: 4px;">❄️</div>
+          <div style="font-size: 12px; font-weight: 700; color: #185FA5;">겨울 (12–2월)</div>
+          <div style="font-size: 20px; font-weight: 700; color: #185FA5; font-family: 'Noto Serif KR', serif;">79%</div>
+          <div style="font-size: 11px; color: #378ADD;">긍정 · 리뷰 114개</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 개선 리포트 (full-width) -->
+    <div class="card detail-full">
+      <div class="card-title">AI 개선 리포트</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="report-item">
+          <div class="report-icon warn">⚠️</div>
+          <div class="report-text">
+            <div class="report-label">대기 시간 문제</div>
+            <div class="report-desc">최근 3개월 리뷰의 34%에서 '대기', '웨이팅', '줄 서기' 등의 키워드 등장. 예약 시스템 도입 또는 피크 타임 안내 개선 권장.</div>
+          </div>
+        </div>
+        <div class="report-item">
+          <div class="report-icon warn">🅿️</div>
+          <div class="report-text">
+            <div class="report-label">주차 불편 반복 언급</div>
+            <div class="report-desc">'주차 없음', '주차 어려움' 키워드가 부정 리뷰의 2위 요인. 인근 공용주차장 정보를 SNS 및 입구에 안내하는 방법 추천.</div>
+          </div>
+        </div>
+        <div class="report-item">
+          <div class="report-icon good">✅</div>
+          <div class="report-text">
+            <div class="report-label">친절도 높은 평가 유지</div>
+            <div class="report-desc">'친절', '사장님 좋아요' 키워드가 긍정 리뷰 3위로 꾸준히 유지. 현재 서비스 태도 지속 유지 권장.</div>
+          </div>
+        </div>
+        <div class="report-item">
+          <div class="report-icon good">📸</div>
+          <div class="report-text">
+            <div class="report-label">SNS 콘텐츠 강점</div>
+            <div class="report-desc">'인생샷', '포장 예쁨' 키워드 12월부터 급증. SNS 마케팅 강화 시 방문객 추가 유입 기대 가능.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 긍부정 리뷰 샘플 -->
+    <div class="card detail-full">
+      <div class="card-title">실제 리뷰 샘플</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--pos); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;"><span>✓</span> 긍정 리뷰 대표 사례</div>
+          <div class="review-list">
+            <div class="review-item review-pos">
+              <div class="review-label">★★★★★</div>
+              전주 왔을 때마다 꼭 들르는 곳이에요. 초코파이가 정말 맛있고 직원분들도 너무 친절하세요. 선물용으로 포장해달라 했더니 예쁘게 해주셔서 감동받았어요.
+            </div>
+            <div class="review-item review-pos">
+              <div class="review-label">★★★★☆</div>
+              웨이팅이 좀 있었지만 그만한 가치가 있어요. 빵이 신선하고 달달한 맛이 딱 취향이었어요.
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--neg); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;"><span>!</span> 부정 리뷰 대표 사례</div>
+          <div class="review-list">
+            <div class="review-item review-neg">
+              <div class="review-label">★★☆☆☆</div>
+              주말에 갔더니 대기가 1시간이 넘었어요. 예약 시스템도 없고 안내도 부족해서 많이 불편했습니다. 맛은 있는데 운영이 아쉬워요.
+            </div>
+            <div class="review-item review-neg">
+              <div class="review-label">★★★☆☆</div>
+              맛은 괜찮은데 가격이 좀 비싼 것 같고 주차가 전혀 안 돼서 불편했어요.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 전주 리뷰인사이트 — 전주 방문 여행객을 위한 AI 리뷰 분석 서비스 &nbsp;|&nbsp; 매일 자동 업데이트
+  </footer>
+</div>
+
+<!-- RAG OVERLAY (CHATBOT) -->
+<div class="rag-overlay-backdrop" id="ragOverlayBackdrop" onclick="closeRagOverlay()"></div>
+<div class="rag-overlay" id="ragOverlay">
+  <div class="rag-ol-header">
+    <div class="rag-ol-badge">AI 챗봇</div>
+    <div class="rag-ol-query" style="font-weight:700;">RAG AI 어시스턴트</div>
+    <button class="rag-ol-close" onclick="closeRagOverlay()">×</button>
+  </div>
+  <div class="rag-ol-body" id="ragOverlayBody">
+    <!-- 채팅 내용이 동적으로 추가됨 -->
+  </div>
+  <div class="rag-ol-footer">
+    <input type="text" id="ragOverlayInput" placeholder="추가로 궁금한 점을 물어보세요..." onkeydown="if(event.key==='Enter') sendRagOverlayMessage()">
+    <button onclick="sendRagOverlayMessage()">전송</button>
+  </div>
+</div>
+
+<script>
+const businesses = [
+  { id:1, name:'풍년제과', icon:'🥐', category:'카페/빵집', location:'완산구 전동', reviews:1243, rating:4.2, pos:78, neg:22, desc:'전주 대표 빵집. 초코파이가 유명.',
+    menu:[
+      { name:'초코파이', price:'1,500', mention:312, sentiment:'pos', tag:'대표메뉴' },
+      { name:'단팥빵', price:'1,800', mention:198, sentiment:'pos', tag:'인기' },
+      { name:'소보로빵', price:'1,500', mention:145, sentiment:'pos', tag:'' },
+      { name:'크림치즈빵', price:'2,200', mention:89, sentiment:'pos', tag:'신메뉴' },
+      { name:'흑임자롤', price:'2,500', mention:67, sentiment:'neutral', tag:'' },
+      { name:'카스테라', price:'3,000', mention:54, sentiment:'neg', tag:'' },
+    ]
+  },
+  { id:2, name:'한국집', icon:'🍚', category:'한식', location:'완산구 풍남동', reviews:2841, rating:4.5, pos:85, neg:15, desc:'전주비빔밥 원조 맛집.',
+    menu:[
+      { name:'전주비빔밥', price:'13,000', mention:1240, sentiment:'pos', tag:'대표메뉴' },
+      { name:'돌솥비빔밥', price:'14,000', mention:782, sentiment:'pos', tag:'인기' },
+      { name:'육회비빔밥', price:'16,000', mention:431, sentiment:'pos', tag:'' },
+      { name:'콩나물국밥', price:'9,000', mention:256, sentiment:'pos', tag:'' },
+      { name:'한정식 세트', price:'28,000', mention:189, sentiment:'pos', tag:'' },
+    ]
+  },
+  { id:3, name:'전주향교', icon:'🏯', category:'관광지', location:'완산구 교동', reviews:674, rating:4.3, pos:80, neg:20, desc:'조선시대 향교. 포토스팟으로 유명.',
+    menu:[
+      { name:'입장권 (성인)', price:'무료', mention:210, sentiment:'pos', tag:'' },
+      { name:'문화해설 투어', price:'2,000', mention:98, sentiment:'pos', tag:'추천' },
+      { name:'전통체험 프로그램', price:'5,000', mention:74, sentiment:'pos', tag:'' },
+    ]
+  },
+  { id:4, name:'팔복예술공장', icon:'🎨', category:'체험', location:'덕진구 팔복동', reviews:412, rating:4.0, pos:72, neg:28, desc:'폐공장 리노베이션 복합문화공간.',
+    menu:[
+      { name:'기본 입장', price:'무료', mention:180, sentiment:'pos', tag:'' },
+      { name:'도자기 체험', price:'15,000', mention:134, sentiment:'pos', tag:'인기' },
+      { name:'판화 체험', price:'12,000', mention:88, sentiment:'pos', tag:'' },
+      { name:'전시 특별관람', price:'5,000', mention:56, sentiment:'neutral', tag:'' },
+    ]
+  },
+  { id:5, name:'전동성당카페', icon:'☕', category:'카페', location:'완산구 전동', reviews:889, rating:4.4, pos:83, neg:17, desc:'전동성당 뷰 카페. 분위기 최고.',
+    menu:[
+      { name:'아메리카노', price:'5,500', mention:320, sentiment:'pos', tag:'대표' },
+      { name:'라떼', price:'6,500', mention:245, sentiment:'pos', tag:'' },
+      { name:'성당뷰 케이크', price:'8,000', mention:198, sentiment:'pos', tag:'인기' },
+      { name:'전주막걸리 라떼', price:'7,000', mention:132, sentiment:'pos', tag:'특메뉴' },
+      { name:'수제 쿠키 세트', price:'9,000', mention:87, sentiment:'neutral', tag:'' },
+    ]
+  },
+  { id:6, name:'한옥마을게스트하우스', icon:'🛏', category:'숙박', location:'완산구 풍남동', reviews:521, rating:4.1, pos:74, neg:26, desc:'한옥마을 내 감성 게스트하우스.',
+    menu:[
+      { name:'한옥 도미토리', price:'35,000', mention:210, sentiment:'pos', tag:'' },
+      { name:'한옥 온돌 1인실', price:'65,000', mention:178, sentiment:'pos', tag:'인기' },
+      { name:'한옥 프리미엄 2인실', price:'120,000', mention:89, sentiment:'pos', tag:'' },
+      { name:'조식 포함 패키지', price:'+10,000', mention:64, sentiment:'pos', tag:'' },
+    ]
+  },
+  { id:7, name:'전주막걸리골목', icon:'🍶', category:'한식', location:'완산구 서학동', reviews:1102, rating:4.3, pos:81, neg:19, desc:'파전과 막걸리의 성지.',
+    menu:[
+      { name:'전주 막걸리', price:'4,000', mention:512, sentiment:'pos', tag:'대표' },
+      { name:'녹두 빈대떡', price:'12,000', mention:398, sentiment:'pos', tag:'인기' },
+      { name:'파전', price:'10,000', mention:345, sentiment:'pos', tag:'인기' },
+      { name:'도토리묵무침', price:'8,000', mention:198, sentiment:'pos', tag:'' },
+      { name:'모둠전 세트', price:'22,000', mention:134, sentiment:'pos', tag:'' },
+    ]
+  },
+  { id:8, name:'전주공예품전시관', icon:'🏺', category:'체험', location:'완산구 풍남동', reviews:298, rating:3.9, pos:68, neg:32, desc:'전통 공예 체험 및 전시.',
+    menu:[
+      { name:'관람 입장', price:'2,000', mention:120, sentiment:'neutral', tag:'' },
+      { name:'한지공예 체험', price:'10,000', mention:98, sentiment:'pos', tag:'인기' },
+      { name:'매듭공예 체험', price:'12,000', mention:67, sentiment:'pos', tag:'' },
+      { name:'전통 부채 만들기', price:'15,000', mention:45, sentiment:'pos', tag:'' },
+    ]
+  },
+];
+
+function renderMenuGrid(menuItems) {
+  const grid = document.getElementById('menuGrid');
+  if (!grid || !menuItems) return;
+  const sentimentColors = {
+    pos: { bg: '#E6F5ED', border: '#A7F3D0', text: '#1A7A4A', label: '긍정반응 높음' },
+    neutral: { bg: '#F5F0E8', border: '#E8DCC8', text: '#5C4A2A', label: '보통' },
+    neg: { bg: '#FAE8E6', border: '#FECACA', text: '#C0392B', label: '부정반응 있음' },
+  };
+  grid.innerHTML = menuItems.map(m => {
+    const sc = sentimentColors[m.sentiment];
+    return `<div style="background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; position: relative;">
+      ${m.tag ? `<span style="position:absolute; top:10px; right:10px; background:${sc.bg}; color:${sc.text}; border:1px solid ${sc.border}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:100px;">${m.tag}</span>` : ''}
+      <div style="font-size: 14px; font-weight: 700; color: var(--text); padding-right: ${m.tag ? '52px' : '0'};">${m.name}</div>
+      <div style="font-size: 16px; font-weight: 700; color: var(--primary); font-family: 'Noto Serif KR', serif;">${m.price}${m.price !== '무료' ? '원' : ''}</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
+        <span style="font-size: 11px; color: var(--text-3);">리뷰 언급 ${m.mention}회</span>
+        <span style="font-size: 10px; font-weight: 600; color: ${sc.text};">${sc.label}</span>
+      </div>
+      <div style="height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+        <div style="height:100%; width:${Math.min(100, Math.round(m.mention / menuItems[0].mention * 100))}%; background:${sc.text}; border-radius:2px;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBusinessGrid(data) {
+  const grid = document.getElementById('businessGrid');
+  grid.innerHTML = data.map(b => `
+    <div class="business-card" onclick="showDetail(${b.id})">
+      <div class="business-card-img img-placeholder" style="position:relative;">
+        ${b.icon}
+        <span class="biz-category-badge">${b.category}</span>
+      </div>
+      <div class="business-card-body">
+        <div class="biz-name">${b.name}</div>
+        <div class="biz-loc">📍 ${b.location}</div>
+        <div class="biz-stats">
+          <span class="biz-stat">⭐ ${b.rating}</span>
+          <span class="biz-stat">📝 리뷰 ${b.reviews.toLocaleString()}개</span>
+        </div>
+        <div class="sentiment-bar">
+          <div class="sentiment-bar-fill" style="--pos-pct: ${b.pos}%; width: ${b.pos}%; background: var(--pos);"></div>
+        </div>
+        <div class="sentiment-labels">
+          <span class="s-pos">긍정 ${b.pos}%</span>
+          <span class="s-neg">부정 ${b.neg}%</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setFilter(el, cat) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = cat === '전체' ? businesses : businesses.filter(b => b.category.includes(cat) || b.name.includes(cat));
+  renderBusinessGrid(filtered);
+}
+
+function filterCategory(cat) {
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    if(c.textContent.includes(cat)) { c.classList.add('active'); } else { c.classList.remove('active'); }
+  });
+  const filtered = businesses.filter(b => b.category.includes(cat) || b.name.includes(cat));
+  renderBusinessGrid(filtered.length ? filtered : businesses);
+}
+
+function handleSearch() {
+  const q = document.getElementById('heroSearch').value.toLowerCase();
+  if (!q) { renderBusinessGrid(businesses); return; }
+  const filtered = businesses.filter(b => b.name.includes(q) || b.category.includes(q) || b.desc.includes(q));
+  renderBusinessGrid(filtered.length ? filtered : businesses);
+  document.querySelector('.business-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  window.scrollTo(0,0);
+  if (page === 'detail') { initDetailCharts(); initWordcloud(); }
+}
+
+function showDetail(id) {
+  const b = businesses.find(x => x.id === id);
+  if (!b) return;
+  document.getElementById('detail-icon').textContent = b.icon;
+  document.getElementById('detail-name').textContent = b.name;
+  document.getElementById('detail-category').textContent = b.category;
+  document.getElementById('detail-rating').textContent = b.rating;
+  document.getElementById('detail-reviews').textContent = `리뷰 ${b.reviews.toLocaleString()}개`;
+  document.getElementById('detail-location').textContent = b.location;
+  document.getElementById('detail-pos-pct').textContent = `긍정 ${b.pos}%`;
+  document.getElementById('pie-pos-pct').textContent = `${b.pos}%`;
+  const posCount = Math.round(b.reviews * b.pos / 100);
+  const negCount = b.reviews - posCount;
+  document.getElementById('legend-pos-val').textContent = `${posCount.toLocaleString()}개 (${b.pos}%)`;
+  document.getElementById('legend-neg-val').textContent = `${negCount.toLocaleString()}개 (${b.neg}%)`;
+  document.getElementById('biz-address').textContent = `전북 전주시 ${b.location} ○○길 12`;
+  document.getElementById('map-address-display').textContent = `전북 전주시 ${b.location}`;
+  renderMenuGrid(b.menu);
+  showPage('detail');
+}
+
+// MAIN TREND CHART - 삭제됨 (일별 추이 메인 제거)
+
+let detailChartsInit = false;
+function initDetailCharts() {
+  if (detailChartsInit) { return; }
+  detailChartsInit = true;
+
+  // 월별 방문 추천도 바
+  const visitScores = [
+    { m: '1월', score: 72 }, { m: '2월', score: 68 }, { m: '3월', score: 85 },
+    { m: '4월', score: 91 }, { m: '5월', score: 88 }, { m: '6월', score: 70 },
+    { m: '7월', score: 58 }, { m: '8월', score: 62 }, { m: '9월', score: 87 },
+    { m: '10월', score: 94 }, { m: '11월', score: 89 }, { m: '12월', score: 79 },
+  ];
+  const barsWrap = document.getElementById('visitBars');
+  if (barsWrap) {
+    barsWrap.innerHTML = visitScores.map(v => {
+      const color = v.score >= 85 ? '#1A7A4A' : v.score >= 70 ? '#C8530A' : '#C0392B';
+      return `<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="width:26px; font-size:10px; color:var(--text-3); text-align:right; flex-shrink:0;">${v.m}</span>
+        <div style="flex:1; background:var(--bg); border-radius:3px; height:8px; overflow:hidden;">
+          <div style="width:${v.score}%; height:100%; background:${color}; border-radius:3px;"></div>
+        </div>
+        <span style="width:30px; font-size:10px; font-weight:600; color:${color}; text-align:right;">${v.score}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 계절별 리뷰 막대 차트
+  new Chart(document.getElementById('seasonChart'), {
+    type: 'bar',
+    data: {
+      labels: ['봄 (3–5월)', '여름 (6–8월)', '가을 (9–11월)', '겨울 (12–2월)'],
+      datasets: [
+        { label: '긍정', data: [275, 274, 354, 90], backgroundColor: '#1A7A4A', borderRadius: 4 },
+        { label: '부정', data: [37, 154, 35, 24], backgroundColor: '#C0392B', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}개` }}},
+      scales: {
+        x: { stacked: true, ticks: { font: { size: 10 }, color: '#9C8A6A' }, grid: { display: false }, border: { display: false } },
+        y: { stacked: true, ticks: { font: { size: 10 }, color: '#9C8A6A' }, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } }
+      }
+    }
+  });
+
+  // 도넛 차트
+  new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    data: { labels: ['긍정', '부정'], datasets: [{ data: [78, 22], backgroundColor: ['#1A7A4A', '#C0392B'], borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: false, cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateRotate: true, duration: 800 } }
+  });
+
+  // 일일 긍부정 평가 추이 — 묶음 막대 그래프 (최근 30일)
+  const days = Array.from({length:30}, (_,i) => {
+    const d = new Date(2025,11,30); d.setDate(d.getDate() - (29 - i));
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  });
+  const posDaily = [48,52,60,45,70,85,90,78,65,72,88,95,82,76,68,91,103,97,85,80,95,108,100,112,98,88,105,115,108,120];
+  const negDaily = [18,15,20,22,25,30,32,28,20,24,30,35,28,22,25,38,42,40,32,28,35,40,38,42,35,30,38,45,40,48];
+  new Chart(document.getElementById('detailTrendChart'), {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [
+        { label: '긍정', data: posDaily, backgroundColor: 'rgba(26,122,74,0.75)', borderRadius: 3, borderSkipped: false },
+        { label: '부정', data: negDaily, backgroundColor: 'rgba(192,57,43,0.75)', borderRadius: 3, borderSkipped: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}건` }}},
+      scales: {
+        x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10, color: '#9C8A6A' }, grid: { display: false }, border: { display: false } },
+        y: { ticks: { font: { size: 10 }, color: '#9C8A6A' }, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } }
+      }
+    }
+  });
+}
+
+function initWordcloud() {
+  const wrap = document.getElementById('wordcloudWrap');
+  if (wrap.children.length > 0) return;
+  const words = [
+    { text: '맛있어요', size: 24, type: 'pos' },
+    { text: '친절', size: 20, type: 'pos' },
+    { text: '분위기', size: 19, type: 'pos' },
+    { text: '초코파이', size: 22, type: 'pos' },
+    { text: '전주여행', size: 17, type: 'neutral' },
+    { text: '대기시간', size: 18, type: 'neg' },
+    { text: '포장예쁨', size: 16, type: 'pos' },
+    { text: '재방문', size: 20, type: 'pos' },
+    { text: '주차불편', size: 16, type: 'neg' },
+    { text: '인생샷', size: 15, type: 'pos' },
+    { text: '달달해요', size: 17, type: 'pos' },
+    { text: '선물용', size: 16, type: 'pos' },
+    { text: '가격', size: 14, type: 'neg' },
+    { text: '줄서요', size: 15, type: 'neg' },
+    { text: '꼭방문', size: 18, type: 'pos' },
+    { text: '깔끔', size: 14, type: 'pos' },
+    { text: '전통', size: 13, type: 'neutral' },
+  ];
+  const colorMap = {
+    pos: { bg: '#E6F5ED', color: '#1A7A4A', border: '#A7F3D0' },
+    neg: { bg: '#FAE8E6', color: '#C0392B', border: '#FECACA' },
+    neutral: { bg: '#F5F0E8', color: '#5C4A2A', border: '#E8DCC8' },
+  };
+  words.forEach(w => {
+    const el = document.createElement('span');
+    el.className = 'wc-word';
+    el.textContent = w.text;
+    const c = colorMap[w.type];
+    el.style.cssText = `font-size: ${w.size}px; background: ${c.bg}; color: ${c.color}; border: 1px solid ${c.border};`;
+    wrap.appendChild(el);
+  });
+}
+
+/* ===== RAG 모의 응답 시스템 ===== */
+const ragResponses = [
+  {
+    keys: ['카페','커피','디저트','차'],
+    answer: '전주 리뷰 데이터 <span class="rag-highlight">89,412건</span>을 분석한 결과, 한옥마을 인근 카페 중 긍정 비율이 가장 높은 곳은 <span class="rag-highlight">수제청 카페 (긍정 91%)</span>와 <span class="rag-highlight">전동 커피 로스터스 (긍정 87%)</span>입니다. 리뷰에서 "분위기 좋다", "사진 잘 나온다"는 언급이 두드러집니다.',
+    sources: ['리뷰 #A-2041', '리뷰 #A-3872', '리뷰 #B-0119'],
+    cat: '카페'
+  },
+  {
+    keys: ['주차','차량'],
+    answer: '리뷰 분석 결과, <span class="rag-highlight">주차 관련 부정 언급</span>은 한옥마을 권역에 집중됩니다. 풍남동·전동 업체 68%에서 "주차 어렵다"는 언급이 확인됩니다. <span class="rag-highlight">덕진구·효자동</span> 권역 업체는 주차 편의 언급 비율이 낮아 차량 방문 시 추천됩니다.',
+    sources: ['리뷰 #C-0883', '리뷰 #C-1220'],
+    cat: '한식'
+  },
+  {
+    keys: ['한식','밥','비빔밥','음식'],
+    answer: '전주 한식 업체 리뷰를 분석한 결과, <span class="rag-highlight">비빔밥·한정식</span> 카테고리의 긍정 비율이 평균 <span class="rag-highlight">81.4%</span>로 높습니다. "맛있어요", "재방문 의사 있음" 키워드가 상위 3위 안에 포함됩니다. 가격대는 <span class="rag-highlight">1만~2만원대</span>가 가장 많은 호평을 받습니다.',
+    sources: ['리뷰 #D-0041', '리뷰 #D-2210', '리뷰 #D-3009'],
+    cat: '한식'
+  },
+  {
+    keys: ['아이','가족','아동','어린이','키즈'],
+    answer: '어린이·가족 동반 리뷰를 분석하면 <span class="rag-highlight">체험 공방 및 전통문화 시설</span>의 만족도가 평균 <span class="rag-highlight">85% 이상</span>으로 높습니다. "아이가 너무 좋아했어요"라는 표현이 체험 카테고리에서 가장 빈번히 등장합니다.',
+    sources: ['리뷰 #E-0317', '리뷰 #E-0598'],
+    cat: '체험'
+  },
+  {
+    keys: ['야경','저녁','밤','야간'],
+    answer: '야경 관련 긍정 리뷰는 <span class="rag-highlight">전동성당 인근</span>과 <span class="rag-highlight">남부시장 야시장</span> 주변 업체에 집중됩니다. 12월~1월 겨울 시즌 야경 언급 빈도가 <span class="rag-highlight">3.2배</span> 증가하며, 해당 기간 긍정 비율은 평균 대비 6%p 높습니다.',
+    sources: ['리뷰 #F-1192', '리뷰 #F-2047', '리뷰 #F-3301'],
+    cat: '한옥마을'
+  },
+  {
+    keys: ['숙박','호텔','한옥','게스트','민박'],
+    answer: '전주 숙박 리뷰 분석 결과, <span class="rag-highlight">전통 한옥 숙박</span>의 긍정 비율은 평균 <span class="rag-highlight">84%</span>로 일반 호텔 대비 12%p 높습니다. "체험 분위기", "직원 친절"이 주요 호평 키워드이며, "방음"은 주의 키워드로 분류됩니다.',
+    sources: ['리뷰 #G-0042', '리뷰 #G-0887'],
+    cat: '숙박'
+  },
+];
+
+const ragDefaultAnswer = '리뷰 <span class="rag-highlight">89,412건</span>을 분석했습니다. 더 정확한 결과를 위해 카테고리(한식·카페·숙박 등)나 원하시는 조건(주차·분위기·가격대 등)을 함께 입력해 주세요.';
+
+function ragPreset(el) {
+  document.getElementById('ragInput').value = el.textContent;
+  ragSearch();
+}
+
+function processRagQuery(q) {
+  const body = document.getElementById('ragOverlayBody');
+  
+  // 사용자 질문 버블
+  const userBubble = document.createElement('div');
+  userBubble.className = 'rag-ol-user-card';
+  userBubble.textContent = q;
+  body.appendChild(userBubble);
+
+  // AI 답변 대기 버블
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'rag-ol-ai-card';
+  aiBubble.innerHTML = `
+    <div class="rag-ol-ai-hd">
+      <div class="rag-pulse"></div>
+      <span class="rag-status">분석 중...</span>
+    </div>
+    <div class="rag-answer-text">
+      <div class="rag-thinking"><span></span><span></span><span></span></div>
+    </div>
+    <div class="rag-ol-sources" style="display:none; margin-top:12px; padding-top:10px; border-top:1px solid rgba(200,83,10,0.15); gap:6px; flex-wrap:wrap;"></div>
+    <div class="rag-ol-results-hd" style="display:none; font-size:12px; font-weight:700; color:var(--text-2); margin-top:16px; margin-bottom:8px; align-items:center; gap:8px;"></div>
+    <div class="rag-ol-grid"></div>
+  `;
+  body.appendChild(aiBubble);
+  
+  // 스크롤 맨 아래로
+  requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+
+  const ql = q.toLowerCase();
+
+  // 1. 업체 직접 검색인지 확인
+  const directBusiness = businesses.find(b => q.includes(b.name) || b.name.includes(q));
+
+  if (directBusiness) {
+    setTimeout(() => {
+      aiBubble.querySelector('.rag-status').textContent = '업체 검색 완료';
+      const answerEl = aiBubble.querySelector('.rag-answer-text');
+      answerEl.style.opacity = '0';
+      answerEl.innerHTML = `검색하신 <span style="font-weight:700; color:var(--primary);">${directBusiness.name}</span> 정보입니다. 카드를 클릭하시면 상세 페이지로 이동합니다.`;
+      
+      const gridEl = aiBubble.querySelector('.rag-ol-grid');
+      gridEl.innerHTML = `
+        <div class="business-card" style="box-shadow: none; border: 1px solid var(--border); cursor:pointer;" onclick="closeRagOverlay(); showDetail(${directBusiness.id})">
+          <div class="business-card-img img-placeholder" style="height:100px; font-size:1.5rem;">
+            ${directBusiness.icon}
+            <span class="biz-category-badge" style="top:6px; left:6px;">${directBusiness.category}</span>
+          </div>
+          <div class="business-card-body" style="padding:12px;">
+            <div class="biz-name" style="font-size:13px;">${directBusiness.name}</div>
+            <div class="biz-loc" style="font-size:11px; margin-bottom:6px;">📍 ${directBusiness.location}</div>
+            <div class="sentiment-bar" style="margin-bottom:4px;">
+              <div class="sentiment-bar-fill" style="--pos-pct: ${directBusiness.pos}%; width: ${directBusiness.pos}%; background: var(--pos);"></div>
+            </div>
+            <div class="sentiment-labels" style="font-size:10px;">
+              <span class="s-pos">긍정 ${directBusiness.pos}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      requestAnimationFrame(() => { 
+        answerEl.style.transition = 'opacity .4s';
+        answerEl.style.opacity = '1'; 
+        body.scrollTop = body.scrollHeight;
+      });
+    }, 600);
+    return;
+  }
+
+  // 2. 일반 RAG 질의 처리
+  const match = ragResponses.find(r => r.keys.some(k => ql.includes(k)));
+
+  setTimeout(() => {
+    const text = match ? match.answer : ragDefaultAnswer;
+    const sources = match ? match.sources : ['리뷰 #Z-0001', '리뷰 #Z-0002'];
+
+    aiBubble.querySelector('.rag-status').textContent = `분석 완료 · 참조 ${sources.length}건`;
+    
+    const answerEl = aiBubble.querySelector('.rag-answer-text');
+    answerEl.style.opacity = '0';
+    answerEl.innerHTML = text;
+    requestAnimationFrame(() => { 
+      answerEl.style.transition = 'opacity .4s';
+      answerEl.style.opacity = '1'; 
+      body.scrollTop = body.scrollHeight;
+    });
+
+    const sourcesEl = aiBubble.querySelector('.rag-ol-sources');
+    sourcesEl.style.display = 'flex';
+    sourcesEl.innerHTML = '<span class="rag-src-label" style="font-size:10px; color:var(--text-3); font-weight:600; align-self:center;">📄 참조 리뷰</span>';
+    sources.forEach(s => {
+      const chip = document.createElement('span');
+      chip.className = 'rag-src-chip';
+      chip.textContent = s;
+      sourcesEl.appendChild(chip);
+    });
+
+    if (match && match.cat) {
+      const filtered = businesses.filter(b =>
+        b.category.includes(match.cat) || b.name.includes(q) || b.desc.includes(q)
+      );
+      if (filtered.length > 0) {
+        const resultsHd = aiBubble.querySelector('.rag-ol-results-hd');
+        const gridEl = aiBubble.querySelector('.rag-ol-grid');
+        resultsHd.style.display = 'flex';
+        resultsHd.innerHTML = `<span style="width:3px; height:14px; background:var(--primary); border-radius:2px; display:inline-block;"></span>관련 업체 추천`;
+        gridEl.innerHTML = filtered.map(b => `
+          <div class="business-card" style="box-shadow: none; border: 1px solid var(--border); cursor:pointer;" onclick="closeRagOverlay(); showDetail(${b.id})">
+            <div class="business-card-img img-placeholder" style="height:100px; font-size:1.5rem;">
+              ${b.icon}
+              <span class="biz-category-badge" style="top:6px; left:6px;">${b.category}</span>
+            </div>
+            <div class="business-card-body" style="padding:12px;">
+              <div class="biz-name" style="font-size:13px;">${b.name}</div>
+              <div class="biz-loc" style="font-size:11px; margin-bottom:6px;">📍 ${b.location}</div>
+              <div class="sentiment-bar" style="margin-bottom:4px;">
+                <div class="sentiment-bar-fill" style="--pos-pct: ${b.pos}%; width: ${b.pos}%; background: var(--pos);"></div>
+              </div>
+              <div class="sentiment-labels" style="font-size:10px;">
+                <span class="s-pos">긍정 ${b.pos}%</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+    
+    // 최종 높이 변경 후 다시 스크롤
+    setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
+  }, 1500);
+}
+
+function ragSearch() {
+  const q = (document.getElementById('ragInput').value || '').trim();
+  if (!q) return;
+
+  const backdrop = document.getElementById('ragOverlayBackdrop');
+  const overlay = document.getElementById('ragOverlay');
+  const body = document.getElementById('ragOverlayBody');
+
+  // 오버레이 열기 및 초기화
+  backdrop.classList.add('open');
+  overlay.classList.add('open');
+  body.innerHTML = ''; 
+  document.getElementById('ragInput').value = ''; 
+  
+  processRagQuery(q);
+}
+
+function sendRagOverlayMessage() {
+  const input = document.getElementById('ragOverlayInput');
+  const q = (input.value || '').trim();
+  if (!q) return;
+  
+  input.value = '';
+  processRagQuery(q);
+}
+
+function closeRagOverlay() {
+  document.getElementById('ragOverlayBackdrop').classList.remove('open');
+  document.getElementById('ragOverlay').classList.remove('open');
+}
+
+/* ===== 우상단 nav 검색 (RAG 완전 분리 — 업체 직접 필터링) ===== */
+function navSearch(q) {
+  q = (q || '').trim();
+  if (!q) return;
+
+  // 메인 페이지로 이동 (detail 등 다른 페이지에 있을 경우)
+  showPage('main');
+
+  // 업체 데이터 직접 필터링
+  const ql = q.toLowerCase();
+  const filtered = businesses.filter(b =>
+    b.name.includes(q) ||
+    b.category.toLowerCase().includes(ql) ||
+    b.location.includes(q) ||
+    (b.desc && b.desc.includes(q))
+  );
+
+  renderBusinessGrid(filtered.length ? filtered : businesses);
+
+  // 결과 카운트 업데이트
+  const countEl = document.querySelector('.section-header .section-title + div span');
+  if (countEl) {
+    if (filtered.length) {
+      countEl.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
+      countEl.style.color = 'var(--primary)';
+      countEl.style.fontWeight = '600';
+    } else {
+      countEl.textContent = `"${q}" 결과 없음 — 전체 표시 중`;
+      countEl.style.color = 'var(--neg)';
+    }
+  }
+
+  // 업체 목록으로 부드럽게 스크롤
+  setTimeout(() => {
+    document.querySelector('.business-section')?.scrollIntoView({ behavior: 'smooth' });
+  }, 150);
+
+  // 필터 chip 전체 해제 후 '전체' 활성화
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  const allChip = document.querySelector('.filter-chip');
+  if (allChip) allChip.classList.add('active');
+}
+
+function handleSearch() { ragSearch(); }
+
+// INIT
+renderBusinessGrid(businesses);
+</script>
+</body>
+</html>
