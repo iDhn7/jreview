@@ -2,9 +2,9 @@ const businesses = [
   { id:1, name:'풍년제과', icon:'🥐', category:'카페/빵집', location:'완산구 전동', reviews:1243, rating:4.2, pos:78, neg:22, desc:'전주 대표 빵집. 초코파이가 유명.',
     menu:[
       { name:'초코파이', price:'1,500', mention:312, sentiment:'pos', tag:'대표메뉴' },
-      { name:'단팥빵', price:'1,800', mention:198, sentiment:'pos', tag:'인기' },
+      { name:'단팥빵', price:'1,800', mention:198, sentiment:'pos', tag:'' },
       { name:'소보로빵', price:'1,500', mention:145, sentiment:'pos', tag:'' },
-      { name:'크림치즈빵', price:'2,200', mention:89, sentiment:'pos', tag:'신메뉴' },
+      { name:'크림치즈빵', price:'2,200', mention:89, sentiment:'pos', tag:'' },
       { name:'흑임자롤', price:'2,500', mention:67, sentiment:'neutral', tag:'' },
       { name:'카스테라', price:'3,000', mention:54, sentiment:'neg', tag:'' },
     ]
@@ -12,7 +12,7 @@ const businesses = [
   { id:2, name:'한국집', icon:'🍚', category:'한식', location:'완산구 풍남동', reviews:2841, rating:4.5, pos:85, neg:15, desc:'전주비빔밥 원조 맛집.',
     menu:[
       { name:'전주비빔밥', price:'13,000', mention:1240, sentiment:'pos', tag:'대표메뉴' },
-      { name:'돌솥비빔밥', price:'14,000', mention:782, sentiment:'pos', tag:'인기' },
+      { name:'돌솥비빔밥', price:'14,000', mention:782, sentiment:'pos', tag:'' },
       { name:'육회비빔밥', price:'16,000', mention:431, sentiment:'pos', tag:'' },
       { name:'콩나물국밥', price:'9,000', mention:256, sentiment:'pos', tag:'' },
       { name:'한정식 세트', price:'28,000', mention:189, sentiment:'pos', tag:'' },
@@ -21,40 +21,40 @@ const businesses = [
   { id:3, name:'전주향교', icon:'🏯', category:'관광지', location:'완산구 교동', reviews:674, rating:4.3, pos:80, neg:20, desc:'조선시대 향교. 포토스팟으로 유명.',
     menu:[
       { name:'입장권 (성인)', price:'무료', mention:210, sentiment:'pos', tag:'' },
-      { name:'문화해설 투어', price:'2,000', mention:98, sentiment:'pos', tag:'추천' },
+      { name:'문화해설 투어', price:'2,000', mention:98, sentiment:'pos', tag:'' },
       { name:'전통체험 프로그램', price:'5,000', mention:74, sentiment:'pos', tag:'' },
     ]
   },
   { id:4, name:'팔복예술공장', icon:'🎨', category:'체험', location:'덕진구 팔복동', reviews:412, rating:4.0, pos:72, neg:28, desc:'폐공장 리노베이션 복합문화공간.',
     menu:[
       { name:'기본 입장', price:'무료', mention:180, sentiment:'pos', tag:'' },
-      { name:'도자기 체험', price:'15,000', mention:134, sentiment:'pos', tag:'인기' },
+      { name:'도자기 체험', price:'15,000', mention:134, sentiment:'pos', tag:'' },
       { name:'판화 체험', price:'12,000', mention:88, sentiment:'pos', tag:'' },
       { name:'전시 특별관람', price:'5,000', mention:56, sentiment:'neutral', tag:'' },
     ]
   },
   { id:5, name:'전동성당카페', icon:'☕', category:'카페', location:'완산구 전동', reviews:889, rating:4.4, pos:83, neg:17, desc:'전동성당 뷰 카페. 분위기 최고.',
     menu:[
-      { name:'아메리카노', price:'5,500', mention:320, sentiment:'pos', tag:'대표' },
+      { name:'아메리카노', price:'5,500', mention:320, sentiment:'pos', tag:'대표메뉴' },
       { name:'라떼', price:'6,500', mention:245, sentiment:'pos', tag:'' },
-      { name:'성당뷰 케이크', price:'8,000', mention:198, sentiment:'pos', tag:'인기' },
-      { name:'전주막걸리 라떼', price:'7,000', mention:132, sentiment:'pos', tag:'특메뉴' },
+      { name:'성당뷰 케이크', price:'8,000', mention:198, sentiment:'pos', tag:'' },
+      { name:'전주막걸리 라떼', price:'7,000', mention:132, sentiment:'pos', tag:'' },
       { name:'수제 쿠키 세트', price:'9,000', mention:87, sentiment:'neutral', tag:'' },
     ]
   },
   { id:6, name:'한옥마을게스트하우스', icon:'🛏', category:'숙박', location:'완산구 풍남동', reviews:521, rating:4.1, pos:74, neg:26, desc:'한옥마을 내 감성 게스트하우스.',
     menu:[
       { name:'한옥 도미토리', price:'35,000', mention:210, sentiment:'pos', tag:'' },
-      { name:'한옥 온돌 1인실', price:'65,000', mention:178, sentiment:'pos', tag:'인기' },
+      { name:'한옥 온돌 1인실', price:'65,000', mention:178, sentiment:'pos', tag:'' },
       { name:'한옥 프리미엄 2인실', price:'120,000', mention:89, sentiment:'pos', tag:'' },
       { name:'조식 포함 패키지', price:'+10,000', mention:64, sentiment:'pos', tag:'' },
     ]
   },
   { id:7, name:'전주막걸리골목', icon:'🍶', category:'한식', location:'완산구 서학동', reviews:1102, rating:4.3, pos:81, neg:19, desc:'파전과 막걸리의 성지.',
     menu:[
-      { name:'전주 막걸리', price:'4,000', mention:512, sentiment:'pos', tag:'대표' },
-      { name:'녹두 빈대떡', price:'12,000', mention:398, sentiment:'pos', tag:'인기' },
-      { name:'파전', price:'10,000', mention:345, sentiment:'pos', tag:'인기' },
+      { name:'전주 막걸리', price:'4,000', mention:512, sentiment:'pos', tag:'대표메뉴' },
+      { name:'녹두 빈대떡', price:'12,000', mention:398, sentiment:'pos', tag:'' },
+      { name:'파전', price:'10,000', mention:345, sentiment:'pos', tag:'' },
       { name:'도토리묵무침', price:'8,000', mention:198, sentiment:'pos', tag:'' },
       { name:'모둠전 세트', price:'22,000', mention:134, sentiment:'pos', tag:'' },
     ]
@@ -62,7 +62,7 @@ const businesses = [
   { id:8, name:'전주공예품전시관', icon:'🏺', category:'체험', location:'완산구 풍남동', reviews:298, rating:3.9, pos:68, neg:32, desc:'전통 공예 체험 및 전시.',
     menu:[
       { name:'관람 입장', price:'2,000', mention:120, sentiment:'neutral', tag:'' },
-      { name:'한지공예 체험', price:'10,000', mention:98, sentiment:'pos', tag:'인기' },
+      { name:'한지공예 체험', price:'10,000', mention:98, sentiment:'pos', tag:'' },
       { name:'매듭공예 체험', price:'12,000', mention:67, sentiment:'pos', tag:'' },
       { name:'전통 부채 만들기', price:'15,000', mention:45, sentiment:'pos', tag:'' },
     ]

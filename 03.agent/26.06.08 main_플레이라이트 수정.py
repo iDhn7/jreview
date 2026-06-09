@@ -20,8 +20,8 @@ import sys
 import time
 from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
-import requests
-from bs4 import BeautifulSoup
+
+
 from urllib.parse import unquote
 import csv
 import os
