@@ -1134,3 +1134,55 @@
     .stats-bar { gap: 1rem; }
     .stat-divider { display: none; }
   }
+
+  /* 영업시간 Hover를 위한 스타일 */
+.time-hover-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.time-summary-text {
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.time-summary-text:hover{
+  color: blue;
+}
+
+/* 기본적으로 작은 창을 숨김 */
+.time-tooltip {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  width: 280px;
+  margin-top: 8px;
+  padding: 12px;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* 마우스를 올렸을 때(Hover) 상세 창을 노출 */
+.time-hover-container:hover .time-tooltip {
+  display: block;
+}
+
+/* 내부 텍스트 정렬 정돈 */
+.time-tooltip p {
+  margin: 4px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.time-tooltip .break-time {
+  color: var(--text-3);
+  font-size: 11px;
+}
