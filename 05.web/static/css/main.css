@@ -22,7 +22,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -42,7 +42,7 @@
     z-index: 100;
   }
   .nav-logo {
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary);
@@ -108,7 +108,7 @@
     letter-spacing: 0.05em;
   }
   .hero h1 {
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
     font-size: 2.2rem;
     font-weight: 700;
     color: #FFFFFF;
@@ -156,7 +156,7 @@
     border: none;
     outline: none;
     font-size: 14.5px;
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     color: var(--text);
     background: transparent;
   }
@@ -169,7 +169,7 @@
     padding: 8px 18px;
     font-size: 13px;
     font-weight: 700;
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -286,7 +286,7 @@
   }
   .rag-ol-query span {
     color: var(--primary);
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
   }
   .rag-ol-badge {
     font-size: 10px;
@@ -425,7 +425,7 @@
     border-radius: 20px;
     padding: 10px 16px;
     font-size: 14px;
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     outline: none;
     transition: border-color .2s;
   }
@@ -439,7 +439,7 @@
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     transition: background .15s;
   }
   .rag-ol-footer button:hover { background: var(--primary-dark); }
@@ -517,7 +517,7 @@
     border: none;
     outline: none;
     font-size: 14px;
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     color: var(--text);
     background: transparent;
   }
@@ -614,7 +614,7 @@
     margin-bottom: 1.25rem;
   }
   .section-title {
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--text);
@@ -817,7 +817,7 @@
   }
   .business-card-body { padding: 1rem; }
   .biz-name {
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
     font-size: 1rem;
     font-weight: 700;
     color: var(--text);
@@ -875,7 +875,7 @@
     cursor: pointer;
     font-size: 13px;
     color: var(--text-3);
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -903,7 +903,7 @@
   }
   .detail-info { flex: 1; }
   .detail-name {
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text);
@@ -950,7 +950,7 @@
     justify-content: center;
   }
   .pie-pct {
-    font-family: 'Pretendard', serif;
+    font-family: 'Noto Sans KR', serif;
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--pos);
@@ -1063,7 +1063,7 @@
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     z-index: 1;
     transition: background .15s;
   }

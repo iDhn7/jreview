@@ -82,7 +82,7 @@ function renderMenuGrid(menuItems) {
     return `<div style="background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; position: relative;">
       ${m.tag ? `<span style="position:absolute; top:10px; right:10px; background:${sc.bg}; color:${sc.text}; border:1px solid ${sc.border}; font-size:10px; font-weight:700; padding:2px 7px; border-radius:100px;">${m.tag}</span>` : ''}
       <div style="font-size: 14px; font-weight: 700; color: var(--text); padding-right: ${m.tag ? '52px' : '0'};">${m.name}</div>
-      <div style="font-size: 16px; font-weight: 700; color: var(--primary); font-family: 'Pretendard', serif;">${m.price}${m.price !== '무료' ? '원' : ''}</div>
+      <div style="font-size: 16px; font-weight: 700; color: var(--primary); font-family: 'Noto Sans KR', serif;">${m.price}${m.price !== '무료' ? '원' : ''}</div>
       <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
         <span style="font-size: 11px; color: var(--text-3);">리뷰 언급 ${m.mention}회</span>
         <span style="font-size: 10px; font-weight: 600; color: ${sc.text};">${sc.label}</span>

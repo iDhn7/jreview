@@ -45,14 +45,13 @@ df_review['YEAR'] = df_review['WRITTEN_DT'].dt.year
 df_review['MONTH'] = df_review['WRITTEN_DT'].dt.month
 df_review['DAY'] = df_review['WRITTEN_DT'].dt.day
 
-# 4. DB 규격에 맞게 컬럼명 정리
+# 4. DB 규격에 맞게 컬럼명 정리 (REVIEW_PN, PN_SCORE는 추후 감성 분석 후 채울 예정)
 db_review = df_review[['STORE_CODE', 'CONTENT', 'WRITTEN_DT', 'YEAR', 'MONTH', 'DAY']]
+print("REVIEW 테이블 가공 완료")
 
-db_review.to_csv('최종_DB용_REVIEW.csv', index=False, encoding='utf-8-sig')
-print("REVIEW 테이블 가공 완료. 최종_DB용_REVIEW.csv로 저장되었습니다.")
-
+'''
 # ==========================================
-# Step 3: WORD (워드 클라우드 테이블) 가공
+# Step 3: WORD (워드 클라우드 테이블) 가공(WORD_PN도 후에 추가)
 # ==========================================
 word_data = []
 word_counter = 1
@@ -66,19 +65,29 @@ for idx, row in db_review.iterrows():
                 'WORD_CODE': word_counter,
                 'REVIEW_CODE': row['REVIEW_CODE'],
                 'WORD': w.replace('.', '').replace(',', '').replace('!', ''), # 특수문자 제거
-                'WORD_PN': row['REVIEW_PN']
             })
             word_counter += 1
 
 db_word = pd.DataFrame(word_data)
-
+'''
 
 # ==========================================
 # Step 4: STORE (업체 정보 테이블) 가공
 # ==========================================
+
+#STORE (업체 정보 테이블) 가공 중 ADDRESS_JI 처리
+def get_ji_address(full_address):
+    # 예시: '전북 전주시 완산구 팔달로 180' -> '전북 전주시 완산구' 까지만 우선 추출
+    # 실제 데이터셋에 지번 정보가 없다면, 시/군/구까지만 넣는 것이 가장 안전합니다.
+    parts = full_address.split(' ')
+    if len(parts) >= 3:
+        return f"{parts[0]} {parts[1]} {parts[2]}"
+    return full_address
+
 # 1. 목록과 상세 정보 병합 (JOIN)
 df_store_merged = pd.merge(df_info, df_list[['업체코드', '상권']], on='업체코드', how='left')
 
+'''
 # 2. 업체별 긍정률 계산 (리뷰 테이블 활용)
 # 업체별로 긍정(P)과 부정(N) 개수를 셉니다.
 pn_counts = db_review.groupby(['STORE_CODE', 'REVIEW_PN']).size().unstack(fill_value=0)
@@ -90,7 +99,7 @@ pn_counts['PN_RATE'] = (pn_counts['P'] / (pn_counts['P'] + pn_counts['N']) * 100
 # 3. 계산된 긍정률을 STORE 데이터에 붙이기
 df_store_merged = pd.merge(df_store_merged, pn_counts[['PN_RATE']], left_on='업체코드', right_index=True, how='left')
 df_store_merged['PN_RATE'] = df_store_merged['PN_RATE'].fillna(0) # 리뷰가 없으면 0%
-
+'''
 # 4. DB 규격에 맞게 컬럼명 정리
 db_store = df_store_merged.rename(columns={
     '업체코드': 'STORE_CODE', '업체명': 'STORE_NAME', '주소': 'ADDRESS_DO',
@@ -99,9 +108,9 @@ db_store = df_store_merged.rename(columns={
     '업체카테고리': 'CATEGORY', '별점': 'STAR', '업체사진': 'STORE_IMAGE_URL', '상권': 'AREA'
 })
 # 지번 주소 등 부족한 컬럼은 빈 값으로 생성하여 뼈대 맞추기
-db_store['ADDRESS_JI'] = '' 
-db_store = db_store[['STORE_CODE', 'STORE_NAME', 'ADDRESS_DO', 'ADDRESS_JI', 'PHONE', 'BUSINESS_HOURS', 'PARKING', 'AMENITY', 'LAT', 'LNG', 'CATEGORY', 'STAR', 'STORE_IMAGE_URL', 'AREA', 'PN_RATE']]
-
+db_store['ADDRESS_JI'] = db_store['ADDRESS_DO'].apply(get_ji_address)
+db_store = db_store[['STORE_CODE', 'STORE_NAME', 'ADDRESS_DO', 'ADDRESS_JI', 'PHONE', 'BUSINESS_HOURS', 'PARKING', 'AMENITY', 'LAT', 'LNG', 'CATEGORY', 'STAR', 'STORE_IMAGE_URL', 'AREA']]
+print("STORE 테이블 가공 완료")
 
 # ==========================================
 # Step 5: MENU (메뉴 테이블) 가공
@@ -121,19 +130,23 @@ def get_mention_count(store_code, menu_name):
     return count
 
 df_menu['CNT'] = df_menu.apply(lambda row: get_mention_count(row['업체코드'], row['메뉴명']), axis=1)
+df_menu['MENU_NAME'] = df_menu['메뉴명'].apply(clean_for_db)
+df_menu['STORE_CODE'] = df_menu['업체코드'].apply(clean_for_db)
+df_menu['MENU_PRICE'] = df_menu['메뉴 가격'] # .apply(clean_for_db)
 
+#df_menu['MENU_PRICE'] = df_menu['메뉴 가격'].apply(clean_for_db)
 # 4. DB 규격에 맞게 컬럼명 정리
-db_menu = df_menu.rename(columns={
-    '업체코드': 'STORE_CODE', '메뉴명': 'MENU_NAME', '메뉴 가격': 'MENU_PRICE'
-})[['MENU_CODE', 'STORE_CODE', 'MENU_NAME', 'MENU_PRICE', 'CNT', 'BEST']]
-
+db_menu = df_menu[['STORE_CODE', 'MENU_NAME', 'MENU_PRICE', 'BEST']]
+print("MENU 테이블 가공 완료")
 
 # ==========================================
 # Step 6: 최종 결과물 CSV로 저장 (Load 준비)
 # ==========================================
-db_store.to_csv('최종_DB용_STORE.csv', index=False, encoding='utf-8-sig')
-db_menu.to_csv('최종_DB용_MENU.csv', index=False, encoding='utf-8-sig')
-#db_review.to_csv('최종_DB용_REVIEW.csv', index=False, encoding='utf-8-sig')
-db_word.to_csv('최종_DB용_WORD.csv', index=False, encoding='utf-8-sig')
 
-print("완료! '최종_DB용_' 으로 시작하는 4개의 파일이 생성되었습니다.")
+db_store.to_csv('전처리_STORE.csv', index=False, encoding='utf-8-sig')
+db_review.to_csv('전처리_REVIEW.csv', index=False, encoding='utf-8-sig')
+db_menu.to_csv('전처리_MENU.csv', index=False, encoding='utf-8-sig')
+#db_word.to_csv('최종_DB용_WORD.csv', index=False, encoding='utf-8-sig')
+
+print("완료! '전처리_' 으로 시작하는 4개의 파일이 생성되었습니다.")
+
