@@ -10,6 +10,16 @@
 
 import pandas as pd
 import numpy as np
+import re
+
+#이모티콘 청소 함수
+def clean_for_db(text):
+    if not text:
+        return ""
+    text = text.replace("접기", " ")
+    # 한글, 영어, 숫자, 감정 자음, 필수 부호남기고 이모티콘 싹 청소
+    clean_text = re.sub(r'[^가-힣a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ.~!?^ ]', ' ', text)
+    return re.sub(r'\s+', ' ', clean_text).strip()
 
 print("데이터 전처리 파이프라인을 시작합니다...")
 
@@ -25,32 +35,21 @@ df_review = pd.read_csv('review.csv')
 # Step 2: REVIEW (리뷰 테이블) 가공
 # ==========================================
 # 1. 리뷰 식별자(PK) 생성
-df_review['REVIEW_CODE'] = range(1, len(df_review) + 1)
+#df_review['REVIEW_CODE'] = range(1, len(df_review) + 1)
 
 # 2. 날짜 분리
-df_review['작성일'] = pd.to_datetime(df_review['작성일'])
-df_review['YEAR'] = df_review['작성일'].dt.year
-df_review['MONTH'] = df_review['작성일'].dt.month
-df_review['DAY'] = df_review['작성일'].dt.day
-
-# 3. 긍/부정 분석 로직 (규칙 기반)
-def analyze_sentiment(text):
-    pos_words = ['맛있', '친절', '아늑', '좋아', '편리', '최고']
-    if any(word in text for word in pos_words):
-        return 'P', round(np.random.uniform(75.0, 99.0), 1)
-    return 'N', round(np.random.uniform(20.0, 45.0), 1)
-
-df_review[['REVIEW_PN', 'PN_SCORE']] = df_review['리뷰 내용'].apply(
-    lambda x: pd.Series(analyze_sentiment(str(x)))
-)
+df_review['WRITTEN_DT'] = pd.to_datetime(df_review['작성일'])
+df_review['STORE_CODE'] = df_review['업체코드'].apply(clean_for_db)
+df_review['CONTENT'] = df_review['리뷰 내용'].apply(clean_for_db)
+df_review['YEAR'] = df_review['WRITTEN_DT'].dt.year
+df_review['MONTH'] = df_review['WRITTEN_DT'].dt.month
+df_review['DAY'] = df_review['WRITTEN_DT'].dt.day
 
 # 4. DB 규격에 맞게 컬럼명 정리
-db_review = df_review.rename(columns={
-    '업체코드': 'STORE_CODE',
-    '리뷰 내용': 'CONTENT',
-    '작성일': 'WRITTEN_DT'
-})[['REVIEW_CODE', 'STORE_CODE', 'CONTENT', 'WRITTEN_DT', 'YEAR', 'MONTH', 'DAY', 'REVIEW_PN', 'PN_SCORE']]
+db_review = df_review[['STORE_CODE', 'CONTENT', 'WRITTEN_DT', 'YEAR', 'MONTH', 'DAY']]
 
+db_review.to_csv('최종_DB용_REVIEW.csv', index=False, encoding='utf-8-sig')
+print("REVIEW 테이블 가공 완료. 최종_DB용_REVIEW.csv로 저장되었습니다.")
 
 # ==========================================
 # Step 3: WORD (워드 클라우드 테이블) 가공
@@ -134,7 +133,7 @@ db_menu = df_menu.rename(columns={
 # ==========================================
 db_store.to_csv('최종_DB용_STORE.csv', index=False, encoding='utf-8-sig')
 db_menu.to_csv('최종_DB용_MENU.csv', index=False, encoding='utf-8-sig')
-db_review.to_csv('최종_DB용_REVIEW.csv', index=False, encoding='utf-8-sig')
+#db_review.to_csv('최종_DB용_REVIEW.csv', index=False, encoding='utf-8-sig')
 db_word.to_csv('최종_DB용_WORD.csv', index=False, encoding='utf-8-sig')
 
 print("완료! '최종_DB용_' 으로 시작하는 4개의 파일이 생성되었습니다.")

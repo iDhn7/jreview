@@ -1,0 +1,7 @@
+﻿MENU_CODE,STORE_CODE,MENU_NAME,MENU_PRICE,CNT,BEST
+1,S001,수제 초코파이,2500,0,True
+2,S001,붓세,2300,0,False
+3,S002,새우전,18000,0,False
+4,S002,다가 플래터,32000,0,False
+5,S003,르네상스 파스타,15000,0,False
+6,S003,안심 스테이크,35000,0,False

@@ -42,7 +42,7 @@
     z-index: 100;
   }
   .nav-logo {
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary);
@@ -108,7 +108,7 @@
     letter-spacing: 0.05em;
   }
   .hero h1 {
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
     font-size: 2.2rem;
     font-weight: 700;
     color: #FFFFFF;
@@ -286,7 +286,7 @@
   }
   .rag-ol-query span {
     color: var(--primary);
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
   }
   .rag-ol-badge {
     font-size: 10px;
@@ -614,7 +614,7 @@
     margin-bottom: 1.25rem;
   }
   .section-title {
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--text);
@@ -817,7 +817,7 @@
   }
   .business-card-body { padding: 1rem; }
   .biz-name {
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
     font-size: 1rem;
     font-weight: 700;
     color: var(--text);
@@ -903,7 +903,7 @@
   }
   .detail-info { flex: 1; }
   .detail-name {
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--text);
@@ -950,7 +950,7 @@
     justify-content: center;
   }
   .pie-pct {
-    font-family: 'Noto Serif KR', serif;
+    font-family: 'Pretendard', serif;
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--pos);
