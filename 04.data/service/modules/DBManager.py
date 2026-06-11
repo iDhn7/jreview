@@ -54,6 +54,7 @@ class DBManager:
     def RunSQL(self, sql, datas=None): # datas가 없는 쿼리도 있을 수 있으므로 기본값 None 설정
         # [워크플로우 2단계: SQL 실행]
         print(f"SQL : \n{sql}")
+        print(f"datas : \n{datas}")
         try:
             self.cursor = self.con.cursor()
             # datas가 있으면 바인딩, 없으면 그냥 실행
