@@ -4,4 +4,6 @@ pyproject.toml
 uv.lock
 .venv/
 .vscode/
+__pycache__/
+*.py[cod]
 
