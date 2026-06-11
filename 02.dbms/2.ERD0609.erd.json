@@ -65,7 +65,8 @@
           "mdrYaF0QAnT965MHn5O0C",
           "SZqEqJNzjrxqeX4vUSyi7",
           "xCMRyLvi_h0ZV5a2ZHq_F",
-          "LSE2YzkpY2eGzNlPRXMI5"
+          "LSE2YzkpY2eGzNlPRXMI5",
+          "chFcvGqef6JFpgsWOsTJD"
         ],
         "seqColumnIds": [
           "j_h7UjQdRsgwk_KpHdiPX",
@@ -103,7 +104,8 @@
           "jbM2FATJsUF-MrsnvCMco",
           "l2rdClV4F01Q-06-qLGml",
           "k7VytJLEH3LA63aIraogy",
-          "Wf4c1l1Gxy6ZQvPdUf_Px"
+          "Wf4c1l1Gxy6ZQvPdUf_Px",
+          "chFcvGqef6JFpgsWOsTJD"
         ],
         "ui": {
           "x": 89.3864,
@@ -114,7 +116,7 @@
           "color": ""
         },
         "meta": {
-          "updateAt": 1780984105091,
+          "updateAt": 1781147823976,
           "createAt": 1779091320821
         }
       },
@@ -2221,6 +2223,26 @@
           "updateAt": 1780983767859,
           "createAt": 1780983655839
         }
+      },
+      "chFcvGqef6JFpgsWOsTJD": {
+        "id": "chFcvGqef6JFpgsWOsTJD",
+        "tableId": "6VA-O2sjL9PuHH3_AVso2",
+        "name": "AI_REPORT",
+        "comment": "AI 분석 리포트",
+        "dataType": "TEXT",
+        "default": "",
+        "options": 0,
+        "ui": {
+          "keys": 0,
+          "widthName": 60,
+          "widthComment": 80,
+          "widthDataType": 60,
+          "widthDefault": 60
+        },
+        "meta": {
+          "updateAt": 1781147848351,
+          "createAt": 1781147823975
+        }
       }
     },
     "relationshipEntities": {
@@ -2235,7 +2257,7 @@
             "M6zzOQob5VKI7ErrlwqW8"
           ],
           "x": 377.3864,
-          "y": 518.0303,
+          "y": 542.0303,
           "direction": 8
         },
         "end": {
@@ -2263,7 +2285,7 @@
             "M6zzOQob5VKI7ErrlwqW8"
           ],
           "x": 665.3864,
-          "y": 310.0303,
+          "y": 322.0303,
           "direction": 2
         },
         "end": {
