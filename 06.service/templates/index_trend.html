@@ -1,229 +1,74 @@
-<div class="trend-grid">
-      <!-- 지역별 긍부정 평가 -->
-      <div class="card">
-        <div class="card-title">지역별 긍·부정 평가 <span style="color: var(--text-3); font-weight: 400; font-size: 11px;">전주 권역</span></div>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 11px;">
-          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#1A7A4A;display:inline-block;"></span>긍정</span>
-          <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#C0392B;display:inline-block;"></span>부정</span>
-        </div>
-        <div class="region-row">
-          <span class="region-name">전북대</span>
-          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:78%"></div><div class="region-bar-neg" style="width:22%"></div></div>
-          <span class="region-pct-pos">78%</span>
-        </div>
-        <div class="region-row">
-          <span class="region-name">신시가지</span>
-          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:75%"></div><div class="region-bar-neg" style="width:25%"></div></div>
-          <span class="region-pct-pos">75%</span>
-        </div>
-        <div class="region-row">
-          <span class="region-name">객사</span>
-          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:71%"></div><div class="region-bar-neg" style="width:29%"></div></div>
-          <span class="region-pct-pos">71%</span>
-        </div>
-        <div class="region-row">
-          <span class="region-name">한옥마을</span>
-          <div class="region-bar-wrap"><div class="region-bar-pos" style="width:82%"></div><div class="region-bar-neg" style="width:18%"></div></div>
-          <span class="region-pct-pos">82%</span>
-        </div>
+<div style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 11px; color: var(--text-2);">
+  <span style="display:flex; align-items:center; gap:4px;">
+    <span style="width:8px; height:8px; border-radius:50%; background: var(--pos); display:inline-block;"></span>긍정 비율
+  </span>
+  <span style="display:flex; align-items:center; gap:4px;">
+    <span style="width:8px; height:8px; border-radius:50%; background: var(--neg); display:inline-block;"></span>부정 비율
+  </span>
+</div>
 
+<div style="display: flex; flex-direction: column; gap: 16px;">
+  {% if trend_area %}
+    {% for area in trend_area %}
+    <div class="region-row">
+      <span class="region-name">{{ area.AREA }}</span>
+      <div class="region-bar-wrap">
+        <div class="region-bar-pos" style="width: {{ area.AVG_PN_RATE }}%;"></div>
+        <div class="region-bar-neg" style="width: {{ area.AVG_NN_RATE }}%;"></div>
       </div>
-
-      <!--지역별 상권 월별 추이 -->
-     <style>
-  /* 전체 카드 및 그래프 영역 설정 */
-  .trend-chart-wrapper {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    margin-top: 15px;
-    background: #fff;
-    border-radius: 8px;
-  }
-
-  /* 그래프 내부에 위치한 범례(Legend) 박스 */
-  .inner-legend {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px 12px;
-    border-radius: 6px;
-    border: 1px solid #f0f0f0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--text-2, #333);
-    z-index: 2;
-  }
-
-  .legend-item { display: flex; align-items: center; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-
-  /* SVG 차트 스타일 */
-  .svg-chart {
-    width: 100%;
-    height: 100%;
-  }
-  .grid-line { stroke: #f0f0f0; stroke-width: 1; }
-  .axis-text { font-size: 11px; fill: #999; }
-  .data-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-  .data-point { stroke-width: 2; fill: #fff; cursor: pointer; transition: r 0.2s; }
-  .data-point:hover { r: 6; }
-</style>
-
-<div class="card">
-  <div class="card-title" style="display: flex; align-items: center;">
-    <div class="live-dot" style="width: 6px; height: 6px; background-color: #ff4d4f; border-radius: 50%; margin-right: 8px;"></div>
-    지역별 상권 계절별 추이
-    <span style="color: var(--text-3, #888); font-weight: 400; font-size: 11px; margin-left: auto;">최근 1년 기준 (단위: 리뷰 수)</span>
-  </div>
-
-  <div class="trend-chart-wrapper">
-    <div class="inner-legend">
-      <div class="legend-item"><span class="dot" style="background: #4BC0C0;"></span>한옥마을</div>
-      <div class="legend-item"><span class="dot" style="background: #FF9F40;"></span>전북대</div>
-      <div class="legend-item"><span class="dot" style="background: #FFCD56;"></span>객사</div>
-      <div class="legend-item"><span class="dot" style="background: #36A2EB;"></span>신시가지</div>
+      <span class="region-pct-pos">{{ area.AVG_PN_RATE }}%</span>
     </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align: center; color: var(--text-3); font-size: 12px; padding: 20px 0;">통계 데이터가 존재하지 않습니다.</div>
+  {% endif %}
+</div>
 
-    <svg class="svg-chart" viewBox="0 0 600 200" preserveAspectRatio="none">
-      
-      <line x1="50" y1="40" x2="550" y2="40" class="grid-line" />
-      <line x1="50" y1="90" x2="550" y2="90" class="grid-line" />
-      <line x1="50" y1="140" x2="550" y2="140" class="grid-line" />
-      <line x1="50" y1="190" x2="550" y2="190" class="grid-line" />
 
-      <text x="120" y="180" class="axis-text" text-anchor="middle">봄(3~5월)</text>
-      <text x="240" y="180" class="axis-text" text-anchor="middle">여름(6~8월)</text>
-      <text x="360" y="180" class="axis-text" text-anchor="middle">가을(9~11월)</text>
-      <text x="480" y="180" class="axis-text" text-anchor="middle">겨울(12~2월)</text>
+<div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
+  {% if trend_season %}
+    {% for group in trend_season|groupby('AREA') %}
+      <div style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 4px;">
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--primary-dark); display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 14px;">📍</span> {{ group.grouper }} 상권
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+          {% for season in group.list %}
+            <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 4px; text-align: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: var(--shadow);">
+              <div style="font-size: 16px; margin-bottom: 4px;">
+                {% if '봄' in season.SEASON %}🌸{% elif '여름' in season.SEASON %}☀️{% elif '가을' in season.SEASON %}🍂{% else %}❄️{% endif %}
+              </div>
+              <div style="font-size: 11px; color: var(--text-2); font-weight: 500;">{{ season.SEASON.split(' ')[0] }}</div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 2px;">{{ season.TOTAL_REVIEWS }}건</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align: center; color: var(--text-3); font-size: 12px; padding: 20px 0;">계절별 데이터가 존재하지 않습니다.</div>
+  {% endif %}
+</div>
 
-      <polyline points="120,140 240,135 360,120 480,100" class="data-line" stroke="#36A2EB" />
-      <circle cx="120" cy="140" r="4" class="data-point" stroke="#36A2EB" />
-      <circle cx="240" cy="135" r="4" class="data-point" stroke="#36A2EB" />
-      <circle cx="360" cy="120" r="4" class="data-point" stroke="#36A2EB" />
-      <circle cx="480" cy="100" r="4" class="data-point" stroke="#36A2EB" />
 
-      <polyline points="120,120 240,110 360,130 480,90" class="data-line" stroke="#FFCD56" />
-      <circle cx="120" cy="120" r="4" class="data-point" stroke="#FFCD56" />
-      <circle cx="240" cy="110" r="4" class="data-point" stroke="#FFCD56" />
-      <circle cx="360" cy="130" r="4" class="data-point" stroke="#FFCD56" />
-      <circle cx="480" cy="90" r="4" class="data-point" stroke="#FFCD56" />
-
-      <polyline points="120,80 240,150 360,90 480,140" class="data-line" stroke="#FF9F40" />
-      <circle cx="120" cy="80" r="4" class="data-point" stroke="#FF9F40" />
-      <circle cx="240" cy="150" r="4" class="data-point" stroke="#FF9F40" />
-      <circle cx="360" cy="90" r="4" class="data-point" stroke="#FF9F40" />
-      <circle cx="480" cy="140" r="4" class="data-point" stroke="#FF9F40" />
-
-      <polyline points="120,60 240,100 360,40 480,110" class="data-line" stroke="#4BC0C0" />
-      <circle cx="120" cy="60" r="4" class="data-point" stroke="#4BC0C0" />
-      <circle cx="240" cy="100" r="4" class="data-point" stroke="#4BC0C0" />
-      <circle cx="360" cy="40" r="4" class="data-point" stroke="#4BC0C0" />
-      <circle cx="480" cy="110" r="4" class="data-point" stroke="#4BC0C0" />
-      
-    </svg>
+<div class="trend-chart-container" style="margin-top: 16px;">
+  <div id="trendRecentPieChart" class="pie-chart" style="display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: var(--text-2);">
+    점유율
+  </div>
+  
+  <div class="chart-legend">
+    {% if trend_recent %}
+      {% set colors = ['var(--primary)', 'var(--accent)', 'var(--text-2)', 'var(--border-2)'] %}
+      {% for recent in trend_recent %}
+      <div class="legend-item" style="margin-bottom: 6px;">
+        <div class="legend-color" style="background: {{ colors[loop.index0 % 4] }};"></div>
+        <span style="font-weight: 500;">{{ recent.AREA }}</span>
+        <span class="legend-percent">{{ recent.RATIO }}%</span>
+        <span style="font-size: 10px; color: var(--text-3); margin-left: 4px;">({{ recent.RECENT_REVIEW_CNT }}건)</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="font-size: 12px; color: var(--text-3);">통계가 없습니다.</div>
+    {% endif %}
   </div>
 </div>
-      <!-- 최근 상권 트렌드 -->
-       <style>
-  /* 그래프 영역 컨테이너 */
-  .trend-chart-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 30px;
-    padding: 15px 0;
-  }
-
-  /* CSS를 활용한 원 그래프 */
-  .pie-chart {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    /* 데이터 비율에 맞춰 %를 조절하세요. 
-      예: 0~25% (25%), 25~45% (20%), 45~85% (40%), 85~100% (15%) 
-    */
-    background: conic-gradient(
-      #FF9F40 0% 25%,      /* 전북대 */
-      #FFCD56 25% 45%,     /* 객사 */
-      #4BC0C0 45% 85%,     /* 한옥마을 */
-      #36A2EB 85% 100%     /* 신시가지 */
-    );
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-  }
-
-  /* 범례(Legend) 스타일 */
-  .chart-legend {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    color: var(--text-2, #333);
-  }
-
-  .legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    margin-right: 8px;
-  }
-
-  /* 각 상권별 색상 (그래프 색상과 매칭) */
-  .color-jb { background-color: #FF9F40; }
-  .color-gs { background-color: #FFCD56; }
-  .color-ho { background-color: #4BC0C0; }
-  .color-sg { background-color: #36A2EB; }
-
-  .legend-percent {
-    margin-left: auto;
-    padding-left: 15px;
-    font-weight: bold;
-    color: var(--text-1, #111);
-  }
-</style>
-      <div class="card">
-          <div class="card-title">
-            <div class="live-dot"></div>
-            최근 상권 트렌드
-            <span style="color: var(--text-3, #888); font-weight: 400; font-size: 11px; margin-left: auto;">
-              최근 30일 리뷰 수 기준
-            </span>
-          </div>
-          
-          <div class="trend-chart-container">
-            <div class="pie-chart"></div>
-            
-            <div class="chart-legend">
-              <div class="legend-item">
-                <div class="legend-color color-ho"></div>
-                <span>한옥마을</span>
-                <span class="legend-percent">40%</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color color-jb"></div>
-                <span>전북대</span>
-                <span class="legend-percent">25%</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color color-gs"></div>
-                <span>객사</span>
-                <span class="legend-percent">20%</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color color-sg"></div>
-                <span>신시가지</span>
-                <span class="legend-percent">15%</span>
-              </div>
-            </div>
-          </div>
-    </div>
-    </div>
