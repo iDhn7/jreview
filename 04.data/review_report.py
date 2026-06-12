@@ -13,7 +13,7 @@ from google import genai
 from google.genai import types
 
 # 🔑 발급받으신 실제 Gemini API Key를 입력하세요.
-GEMINI_API_KEY = os.getenv("GCP_API_KEY") 
+GEMINI_API_KEY = 'AIzaSyCRkngKeylS9xG_koXTllkpU9UfAy6ZJ8Q'
 load_dotenv()
 def review_improvement_report(reviews: list) -> str:
     """
@@ -24,7 +24,8 @@ def review_improvement_report(reviews: list) -> str:
         
     client = genai.Client(api_key=GEMINI_API_KEY)
     reviews_text = "\n".join([f"- {review}" for review in reviews])
-    
+    print(f"{len(reviews)}개의 리뷰를 분석합니다.")
+
     # 구조화된 출력을 유도하기 위한 구체적인 시스템 지침 및 가이드라인
     prompt = f"""
 당신은 고객 경험(CX) 데이터 분석 전문가입니다.
@@ -36,6 +37,32 @@ def review_improvement_report(reviews: list) -> str:
 [출력 형식 가이드라인]
 반드시 도출된 각 개선사항마다 아래의 HTML 양식을 정확하게 지켜서 리스트 형태로 출력해 주세요. 
 html 코드 마크다운 기호(```html)나 다른 여백 텍스트는 일체 포함하지 말고, 오직 아래의 <div> 구조화된 태그들만 이어서 출력해야 합니다.
+
+<div style="display: flex; gap: 10px; position: relative;">
+              <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">영업시간</span>
+              
+              <div class="time-hover-container">
+                <span class="time-summary-text" style="width: 64px; flex-shrink: 0;">영업시간 상세보기</span>
+                
+                <div class="time-tooltip">
+                  <p><strong>월</strong> 11:00 - 22:30 <span class="break-time">(15:00 - 16:50 브레이크타임)</span></p>
+                  <p><strong>화</strong> 11:00 - 22:30 <span class="break-time">(15:00 - 16:50 브레이크타임)</span></p>
+                  <p><strong>수</strong> 11:00 - 22:30 <span class="break-time">(15:00 - 16:50 브레이크타임)</span></p>
+                  <p><strong>목</strong> 11:00 - 22:30 <span class="break-time">(15:00 - 16:50 브레이크타임)</span></p>
+                  <p><strong>금</strong> 11:20 - 23:00 <span class="break-time">(13:00 - 16:50 브레이크타임)</span></p>
+                  <p><strong>토</strong> 11:00 - 22:30 <span class="break-time">(15:00 - 16:50 브레이크타임)</span></p>
+                   <p style="color: var(--neg); font-weight: 500;"><strong>일</strong> 정기휴무 (매주 일요일)</p>
+                  <div style="margin-top: 8px; font-size: 11px; color: var(--text-3); border-top: 1px solid var(--border-2); padding-top: 6px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+
+
+
 
 아이콘 종류 가이드:
 - 심각한 문제/위생/대기: <div class="report-icon warn">⚠️</div>

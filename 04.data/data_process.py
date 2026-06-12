@@ -11,6 +11,14 @@ from review_define import run_reivew_predict
 
 from modules.DBManager import DBManager
 
+#STORE (업체 정보 테이블) 가공 중 ADDRESS_JI 처리
+def get_ji_address(full_address):
+    # 예시: '전북 전주시 완산구 팔달로 180' -> '전북 전주시 완산구' 까지만 우선 추출
+    # 실제 데이터셋에 지번 정보가 없다면, 시/군/구까지만 넣는 것이 가장 안전합니다.
+    parts = full_address.split(' ')
+    if len(parts) >= 3:
+        return f"{parts[0]} {parts[1]} {parts[2]}"
+    return full_address
 
 class DataProcess:
     def __init__(self):
@@ -75,8 +83,12 @@ class DataProcess:
             ai_report = review_improvement_report(review_list)
             """
 
+            # adderss_ji 전처리 함수 불러와서 사용. Nan 대비 해서 예외 처리
+            raw_address = str(row['주소']).strip() if pd.notna(row['주소']) else ""
+            ji_address  = get_ji_address(raw_address) if raw_address else ""
+
             datas = (
-                row['업체코드'], row['업체명'], row['주소'], None, 
+                row['업체코드'], row['업체명'], row['주소'], ji_address, 
                 row['전화번호'], row['영업시간'], row['주차여부'], row['편의성정보'], 
                 float(row['위도']), float(row['경도']), row['업체카테고리'], float(row['별점']), 
                 row['업체사진'], area, 0.0, None
@@ -196,9 +208,40 @@ class DataProcess:
             print(f"메뉴 언급 횟수 업데이트 중 오류 발생: {e}")  
 
         #AI 개선사항 업데이트 
+    def ProcessAIReport(self) :
+        print("\n--- AI 개선사항 업데이트 ---")
+        
+        self.db.OpenSQL("SELECT STORE_CODE FROM STORE WHERE AI_REPORT IS NULL")
+        targets = self.db.getAll()
 
+        total = len(targets)
+        for i, item in enumerate(targets):
+            code = item['STORE_CODE']
+            # 
+            try:
+                items = self.df_review[self.df_review["업체코드"] == code]["리뷰내용"]
+                if not items.empty:
+                    # AI 분석 함수
+                    ai_report = review_improvement_report(items.astype(str).tolist())
+                else:
+                    ai_report = "리뷰 없음"
+            except Exception as e:
+                ai_report = f"분석 오류: {e}"
 
+            #DB 업데이트
+            sql = "UPDATE STORE SET AI_REPORT = %s WHERE STORE_CODE = %s"
+            self.db.RunSQL(sql, (ai_report, code))
 
+            print(f"{i + 1} / {total}번째 업체 업데이트 완료: {code}")
+            time.sleep(1)
+
+            '''
+            review_list = []
+            items = self.df_review[ self.df_review["업체코드"] == code ]["리뷰내용"]
+            for j in range(0,len(items)) :
+                review_list.append(str(items.iloc[j]))
+            ai_report = review_improvement_report(review_list)
+            '''
 
 # 메인 실행 흐름
 if __name__ == "__main__":
@@ -206,14 +249,16 @@ if __name__ == "__main__":
     if data.DBOpen():
         try:
             #기본 데이터 등록 처리
-            #data.ProcessInfo()
+            data.ProcessInfo()
             #data.ProcessMenu()
             #data.ProcessReview()
 
             #데이터 등록 후 마무리 작업처리
-            data.RunAfter()
+            #data.ProcessAIReport()
+            #data.RunAfter()
             
-            print("\n STORE, MENU, REVIEW 데이터 이관이 완료되었습니다!")
+            #print("\n STORE, MENU, REVIEW 데이터 이관이 완료되었습니다!")
+            print("\n AI 리포트 업데이트가 완료되었습니다!")
         except Exception as e:
             print(f"오류 발생: {e}")
         finally:
