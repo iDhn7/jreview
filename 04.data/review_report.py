@@ -6,14 +6,15 @@
 ※ 필요 패키지 설치
     pip install google-genai
 """
-
+import os 
+from dotenv import load_dotenv
 import time
 from google import genai
 from google.genai import types
 
 # 🔑 발급받으신 실제 Gemini API Key를 입력하세요.
-GEMINI_API_KEY = ""
-
+GEMINI_API_KEY = os.getenv("GCP_API_KEY") 
+load_dotenv()
 def review_improvement_report(reviews: list) -> str:
     """
     고객 리뷰 리스트를 받아 최대 4개의 개선사항을 지정된 HTML 구조로 생성합니다.
