@@ -12,7 +12,7 @@ from google import genai
 from google.genai import types
 
 # 🔑 발급받으신 실제 Gemini API Key를 입력하세요.
-GEMINI_API_KEY = "AQ.Ab8RN6JHQ4uJI31orC5R5EZUMEOOcis7JEwX9a97HRCaNuTqgw"
+GEMINI_API_KEY = ""
 
 def review_improvement_report(reviews: list) -> str:
     """
