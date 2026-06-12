@@ -1,10 +1,13 @@
 import os
+import time
+from konlpy.tag import Okt
 
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
 from review_report import review_improvement_report
+from review_define import run_reivew_predict
 
 from modules.DBManager import DBManager
 
@@ -34,18 +37,16 @@ class DataProcess:
     def DBClose(self):
         self.db.DBClose()
 
-    def DataClear(self) :
+    def ProcessInfo(self):
+        print("\n--- STORE 데이터 등록 ---")
+
         """
         기존 데이터를 삭제한다.
-        """
+        """    
         self.db.RunSQL("DELETE FROM WORD")
         self.db.RunSQL("DELETE FROM REVIEW")
         self.db.RunSQL("DELETE FROM MENU")
         self.db.RunSQL("DELETE FROM STORE")
-
-
-    def ProcessInfo(self):
-        print("\n--- STORE 데이터 등록 ---")
 
         total = len(self.df_info)
 
@@ -65,24 +66,31 @@ class DataProcess:
             area = self.df_list[ self.df_list["업체코드"] == code ]["상권"]
             area = str(area.iloc[0]).strip()
             
-
+            """
             #업체리뷰 목록 얻기
             review_list = []
             items = self.df_review[ self.df_review["업체코드"] == code ]["리뷰내용"]
             for j in range(0,len(items)) :
                 review_list.append(str(items.iloc[j]))
             ai_report = review_improvement_report(review_list)
+            """
 
             datas = (
                 row['업체코드'], row['업체명'], row['주소'], None, 
                 row['전화번호'], row['영업시간'], row['주차여부'], row['편의성정보'], 
                 float(row['위도']), float(row['경도']), row['업체카테고리'], float(row['별점']), 
-                row['업체사진'], area, 0.0, ai_report
+                row['업체사진'], area, 0.0, None
             )
-            self.db.RunSQL(sql, datas)
+            self.db.RunSQL(sql, datas)            
 
     def ProcessMenu(self):
         print("\n--- MENU 데이터 등록 ---")
+
+        """
+        기존 데이터를 삭제한다.
+        """
+        self.db.RunSQL("DELETE FROM MENU")
+
         sql = """
             INSERT INTO MENU (STORE_CODE, MENU_NAME, MENU_PRICE, CNT, BEST)
             VALUES (%s, %s, %s, %s, %s)
@@ -96,30 +104,115 @@ class DataProcess:
 
     def ProcessReview(self):
         print("\n--- REVIEW 데이터 등록 ---")
+        
+        okt   = Okt()
+
+        """
+        기존 데이터를 삭제한다.
+        """
+        self.db.RunSQL("DELETE FROM WORD")
+        self.db.RunSQL("DELETE FROM REVIEW")
+                
         sql = """
             INSERT INTO REVIEW 
             (STORE_CODE, CONTENT, WRITTEN_DT, YEAR, MONTH, DAY, REVIEW_PN, PN_SCORE)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
+        
+        total = len(self.df_review)
+
         for i, row in self.df_review.iterrows():
+            print(f"{ i + 1 } / { total }번째 리뷰 처리중....")
+
+            #긍정,부정 등을 검사한다.
+            word_pn,pn_score = run_reivew_predict(row['리뷰내용']);
+
             dt = datetime.strptime(row['작성일'], "%Y-%m-%d")
             datas = (
                 row['업체코드'], row['리뷰내용'], row['작성일'], 
-                dt.year, dt.month, dt.day, None, 0.0
+                dt.year, dt.month, dt.day, word_pn, pn_score
             )
             self.db.RunSQL(sql, datas)
+
+            self.db.OpenSQL("SELECT LAST_INSERT_ID() AS CODE")
+            review_code = self.db.getData(0)["CODE"];  #등록된 리뷰 코드를 얻는다.
+            self.db.CloseSQL()
+            
+
+            #리뷰 단어 처리
+            #words = okt.morphs(row['리뷰내용'])   # 모든 품사를 추출
+            #words = okt.nouns(row['리뷰내용'])      # 명사만 추출
+            words = okt.pos(row['리뷰내용'])      # 명사만 추출
+        
+            sql_word = """
+                INSERT INTO WORD 
+                (REVIEW_CODE, WORD, WORD_PN)
+                VALUES (%s, %s, %s)
+            """            
+            for item in words :
+                word  = item[0]  #단어
+                pumsa = item[1] #품사
+                #print(f"{word}:{pumsa}")
+                if pumsa == "Noun" or pumsa == "Adjective" or pumsa == "Verb" :
+                    #명사,동사,형용사만 등록
+                    datas = (
+                        review_code, word,word_pn
+                    )
+                    self.db.RunSQL(sql_word, datas)
+        '''
+    def RunAfter(self) :
+        #메뉴에 대한 언급횟수 업데이트 방향 
+        SELECT MENU_CODE,MENU_NAME,STORE_CODE FROM MENU
+
+        MENU_CODE = 1
+        MENU_NAME  = "국밥"
+        STORE_CODE = "ST001"
+
+        SELECT COUNT(*) AS TOTAL 
+        FROM REVIEW
+        WHERE STORE_CODE = 'ST001' AND CONTENT LIKE '%국밥%'
+
+
+        UPDATE MENU SET CNT = 10 WHERE MENU_CODE = 1
+       '''
+    def RunAfter(self) :
+        print("\n--- 마무리 작업: 메뉴 언급 횟수 업데이트 ---")
+        
+        
+        sql = """
+            UPDATE MENU M
+            SET CNT = (
+                SELECT COUNT(*) 
+                FROM REVIEW R 
+                WHERE R.STORE_CODE = M.STORE_CODE 
+                AND R.CONTENT LIKE CONCAT('%', M.MENU_NAME, '%')
+            )
+        """
+        
+        try:
+            self.db.RunSQL(sql)
+            print("메뉴 언급 횟수(CNT) 업데이트가 성공적으로 완료되었습니다!")
+        except Exception as e:
+            print(f"메뉴 언급 횟수 업데이트 중 오류 발생: {e}")  
+
+        #AI 개선사항 업데이트 
+
+
+
 
 # 메인 실행 흐름
 if __name__ == "__main__":
     data = DataProcess()
     if data.DBOpen():
         try:
-            data.DataClear()
-            data.ProcessInfo()
-            """
-            data.ProcessMenu()
-            data.ProcessReview()
-            """
+            #기본 데이터 등록 처리
+            #data.ProcessInfo()
+            #data.ProcessMenu()
+            #data.ProcessReview()
+
+            #데이터 등록 후 마무리 작업처리
+            data.RunAfter()
+            
             print("\n STORE, MENU, REVIEW 데이터 이관이 완료되었습니다!")
         except Exception as e:
             print(f"오류 발생: {e}")

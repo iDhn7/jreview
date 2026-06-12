@@ -32,7 +32,7 @@ class DBManager:
                 database=dbname,
                 user=id,
                 password=pw,
-                charset="utf8",
+                charset="utf8mb4",
                 cursorclass=pymysql.cursors.DictCursor
             )
             print("DB에 연결되었습니다.")
@@ -52,22 +52,25 @@ class DBManager:
             print(f"DB 해제 실패: {e}")
             return False
 
-    def RunSQL(self, sql, datas=None): # datas가 없는 쿼리도 있을 수 있으므로 기본값 None 설정
+    def RunSQL(self, sql, datas=None, IsDebug = False): # datas가 없는 쿼리도 있을 수 있으므로 기본값 None 설정
         # [워크플로우 2단계: SQL 실행]
-        print(f"SQL : \n{sql}")
-        print(f"datas : \n{datas}")
+        if IsDebug == True :
+            print(f"SQL : \n{sql}")
+            print(f"datas : \n{datas}")
         try:
             self.cursor = self.con.cursor()
             # datas가 있으면 바인딩, 없으면 그냥 실행
             count = self.cursor.execute(sql, datas) if datas else self.cursor.execute(sql)
             
             if count < 1:
-                print("데이터를 변경하지 못했습니다. (영향을 받은 행 없음)")
+                if IsDebug == True :
+                    print("데이터를 변경하지 못했습니다. (영향을 받은 행 없음)")
                 self.con.rollback()
                 self.cursor.close()
                 return False
             else:
-                print(f"{count}개의 데이터가 변경되었습니다.")
+                if IsDebug == True :
+                    print(f"{count}개의 데이터가 변경되었습니다.")
                 self.con.commit()
                 new_pk = self.cursor.lastrowid
                 self.cursor.close()
@@ -82,9 +85,10 @@ class DBManager:
                 self.con.rollback()
             return False
 
-    def OpenSQL(self, sql, datas=None):
+    def OpenSQL(self, sql, datas=None, IsDebug = False):
         # [워크플로우 2단계: SQL 실행]
-        print(f"SQL : \n{sql}")
+        if IsDebug == True :
+            print(f"SQL : \n{sql}")
         try:
             self.cursor = self.con.cursor()
             if datas:

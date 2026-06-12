@@ -1,11 +1,11 @@
-DROP DATABASE IF EXISTS jreview;
+DROP DATABASE IF EXISTS matzip;
 
 -- 데이터베이스 생성 시 utf8mb4 문자셋 지정
-CREATE DATABASE jreview 
+CREATE DATABASE matzip 
     DEFAULT CHARACTER SET utf8mb4 
     DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE jreview;
+USE matzip;
 
 -- 외래 키 제약 조건 때문에 자식 테이블부터 순서대로 삭제해야 오류가 발생하지 않습니다.
 DROP TABLE IF EXISTS WORD;

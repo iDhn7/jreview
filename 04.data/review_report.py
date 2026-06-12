@@ -12,7 +12,7 @@ from google import genai
 from google.genai import types
 
 # 🔑 발급받으신 실제 Gemini API Key를 입력하세요.
-GEMINI_API_KEY = ""
+GEMINI_API_KEY = "AQ.Ab8RN6JHQ4uJI31orC5R5EZUMEOOcis7JEwX9a97HRCaNuTqgw"
 
 def review_improvement_report(reviews: list) -> str:
     """
@@ -76,7 +76,9 @@ html 코드 마크다운 기호(```html)나 다른 여백 텍스트는 일체 �
                     time.sleep(delay)
                     delay *= 2
                     continue
-            return f"API 호출 중 에러가 발생했습니다: {error_msg}"
+            msg = f"API 호출 중 에러가 발생했습니다: {error_msg}"
+            print(msg)
+            return None
 
 
 # ── 실행 예시 ──────────────────────────────────────────────────
