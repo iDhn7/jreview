@@ -1,4 +1,3 @@
-// static/js/main.js
 
 // 카테고리 필터 및 검색 시 사용할 전역 변수 (Flask에서 받아온 데이터로 초기화)
 let businesses = [];
@@ -244,8 +243,12 @@ function renderStoreDetail(data) {
         // 3. [AI 연동] 리뷰 언급 횟수나 식당 긍정율에 비례해 감성 상태를 안전하게 가공
         // (우선 기본 데이터 분석 가이드에 맞춰 언급이 많고 평점이 높으면 'pos', 데이터가 적당하면 'neutral'로 안전 분기)
         let mSentiment = 'neutral';
-        if (m.BEST || mMention > (maxMention * 0.5)) {
-          mSentiment = 'pos'; // 언급율이 상위 50% 이상이거나 대표메뉴면 긍정반응 높음 바인딩
+        if (mMention === 0) {
+            //  언급이 0회라면 대표메뉴여도 무조건 긍정반응 neutral
+            mSentiment = 'neutral';
+        } else if (m.BEST || mMention > (maxMention * 0.5)) {
+            // 언급이 1회 이상일 때만 대표메뉴이거나 언급 상위 50%일 때 긍정반응 높음
+            mSentiment = 'pos';
         }
 
         const sc = sentimentColors[mSentiment];
