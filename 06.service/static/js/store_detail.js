@@ -9,11 +9,27 @@ function renderStoreDetail(data) {
   if (data.store) {
     const s = data.store;
     
+    // 리뷰 긍부정율/개수 계산식
+    let posRate = 0;
+    const totalReviews = s.REVIEW_CNT || (data.reviews ? data.reviews.length : 0);
+
+    if (data.reviews && data.reviews.length > 0) {
+        const totalScore = data.reviews.reduce((sum, r) => sum + Number(r.PN_SCORE || 0), 0);
+        posRate = Math.round((totalScore / data.reviews.length) * 100);
+    } else {
+        posRate = Math.round(s.PN_RATE || 0);
+    }
+    const negRate = 100 - posRate;
+    
+    const posCount = Math.round(totalReviews * (posRate / 100));
+    const negCount = totalReviews - posCount
+
     // 텍스트 및 수치 매핑 (안정성을 위해 기본값 || 0 처리 추가)
     document.getElementById('detail-name').textContent = s.STORE_NAME || '이름 없음';
     document.getElementById('detail-category').textContent = s.CATEGORY || '-';
     document.getElementById('detail-rating').textContent = Number(s.STAR || 0).toFixed(1);
-    document.getElementById('detail-reviews').textContent = `리뷰 ${s.REVIEW_CNT || 0}개`;
+
+    document.getElementById('detail-reviews').textContent = `리뷰 ${totalReviews.toLocaleString()}개`;
     document.getElementById('detail-location').textContent = s.AREA || '-';
     document.getElementById('detail-pos-pct').textContent = `긍정 ${Math.round(s.PN_RATE || 0)}%`;
 
@@ -52,6 +68,7 @@ function renderStoreDetail(data) {
         } else {
             parkingEl.style.color = "var(--pos)"; // 가능일 땐 초록색
         }
+        
     }
 
     // 편의성 콤마로 쪼개서 배지 달기
@@ -92,6 +109,76 @@ function renderStoreDetail(data) {
         mapBtn.onclick = function() {
             window.open(`https://map.kakao.com/?q=${encodeURIComponent(fullAddress)}`, '_blank');
         };
+    }
+    // --원형 차트--
+    // 맨 위에서 계산한 퍼센트 개수 받아먹기
+    document.getElementById('pie-pos-pct').textContent = `${posRate}%`;
+    document.getElementById('legend-pos-val').textContent = `${posCount.toLocaleString()}개 (${posRate}%)`;
+    document.getElementById('legend-neg-val').textContent = `${negCount.toLocaleString()}개 (${negRate}%)`;
+
+    // Chart.js 도넛 차트 동적 렌더링
+    const ctx = document.getElementById('pieChart');
+    if (ctx) {
+        // 기존에 그려져 있던 차트 객체가 메모리에 남아있으면 파괴(Destroy) 후 재출력하여 렌더링 꼬임 방지
+        if (window.myPieChart) {
+            window.myPieChart.destroy();
+        }
+        const posColor = getComputedStyle(document.documentElement).getPropertyValue('--pos').trim() || '#1A7A4A';
+        const negColor = getComputedStyle(document.documentElement).getPropertyValue('--neg').trim() || '#C0392B';
+
+        window.myPieChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['긍정', '부정'],
+                datasets: [{
+                    data: [posRate, negRate],
+                    backgroundColor: [posColor, negColor],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '75%', // 가운데 글씨 공간 확보
+                plugins: {
+                    legend: { display: false }, //차트 자체 기본 범례 숨김
+                    tooltip: { enabled: true }
+                },
+                responsive: false,
+                maintainAspectRatio: false
+            }
+        });
+    }
+    // 워드클라우드
+    const wordWrap = document.getElementById('wordcloudWrap');
+    if (wordWrap) {
+        wordWrap.innerHTML = ""; // 바구니 초기화
+
+        if (data.words && data.words.length > 0) {
+            // 최고 언급 횟수 기준
+            const maxWordCnt = data.words[0].CNT || 1;
+
+            data.words.forEach(w => {
+                const badge = document.createElement('span');
+                
+                // 긍부정 따른 클래스 지정
+                if (w.WORD_PN === 'P') {
+                    badge.className = 'wc-badge pos';
+                } else if (w.WORD_PN === 'N') {
+                    badge.className = 'wc-badge neg';
+                } else {
+                    badge.className = 'wc-badge neutral';
+                }
+
+                // 언급 수가 많을수록 글자 크기 키우기
+                const ratio = w.CNT / maxWordCnt;
+                const fontSize = Math.round(12 + (ratio * 12)); 
+                badge.style.fontSize = `${fontSize}px`;
+                //바구니에 넣기
+                badge.textContent = w.WORD;
+                wordWrap.appendChild(badge);
+            });
+        } else {
+            wordWrap.innerHTML = `<div style="color: var(--text-3); font-size: 13px; text-align: center; width: 100%; padding: 30px 0;">분석된 키워드가 없습니다.</div>`;
+        }
     }
   
   }
@@ -164,6 +251,80 @@ function renderStoreDetail(data) {
       }).join('');
     }
   }
+
+  // 30 일별 꺾은선 그래프
+  const trendCtx = document.getElementById('detailTrendChart');
+    if (trendCtx) {
+        // 초기화
+        if (window.myTrendChart) {
+            window.myTrendChart.destroy();
+        }
+
+        // 백엔드 데이터가 누락되었을 경우
+        const trends = data.daily_trends || [];
+        
+        // Chart.js에 주입할 x축 라벨(날짜), y축 데이터(긍정/부정 개수) 배열 생성
+        const labels = trends.map(t => t.date);
+        const posData = trends.map(t => t.pos_cnt);
+        const negData = trends.map(t => t.neg_cnt);
+
+        // 긍부정 색상
+        const posColor = getComputedStyle(document.documentElement).getPropertyValue('--pos').trim() || '#1A7A4A';
+        const negColor = getComputedStyle(document.documentElement).getPropertyValue('--neg').trim() || '#C0392B';
+
+        // 꺾은선타입으로 렌더링
+        window.myTrendChart = new Chart(trendCtx, {
+            type: 'bar', 
+            data: {
+                labels: labels, // X축: 날짜 리스트 (ex: "05-14", "05-15")
+                datasets: [
+                    {
+                        label: '긍정 리뷰',
+                        data: posData,
+                        borderColor: posColor,       
+                        backgroundColor: posColor + '15', 
+                        borderWidth: 3,              
+                        tension: 0.3,
+                        pointRadius: 3,    
+                        fill: true   
+                    },
+                    {
+                        label: '부정 리뷰',
+                        data: negData,
+                        borderColor: negColor,   
+                        backgroundColor: negColor + '15', 
+                        borderWidth: 3,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // HTML 상단에 직접 커스텀 범례 디자인을 이미 달아두셨으므로 차트 자체 범례는 숨김 처리!
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }, // X축 격자선은 숨겨서 심플하고 정갈하게 표현
+                        ticks: { color: '#64748B', font: { size: 11 } }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true, // Y축 눈금선은 0부터 정직하게 시작
+                        grid: { color: '#E2E8F0' }, // 은은한 회색 격자선
+                        ticks: { 
+                            stepSize: 1, // 개수 단위이므로 소수점 없이 1개, 2개 단위로 정밀 마감
+                            color: '#64748B' 
+                        }
+                    }
+                }
+            }
+        });
+    }
 
   // 3. 실제 리뷰 샘플 리스트 동적 생성 (view_sample.html 연동)
   const reviewContainer = document.getElementById('det-review-list');

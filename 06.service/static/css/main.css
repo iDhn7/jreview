@@ -1191,3 +1191,49 @@
   width: 400px;
   height: 200px;
 }
+
+/* 워드클라우드 박스 */
+.wordcloud-wrap {
+    display: flex;
+    flex-wrap: wrap;       /* 💡 단어가 넘치면 알아서 다음 줄로 이쁘게 내려가게 함 */
+    gap: 8px;              /* 칩들 사이의 정갈한 간격 */
+    padding: 15px;
+    justify-content: center; /* 캡처본처럼 가운데로 이쁘게 모이게 설정 */
+    align-items: center;
+}
+
+/* 배지 */
+.wc-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;    /* 캡처본과 똑같은 부드러운 둥근 모서리 */
+    font-weight: 700;
+    padding: 6px 14px;     /* 상하 좌우 여백 */
+    transition: all 0.2s ease;
+}
+
+/* 긍정 */
+.wc-badge.pos {
+    background-color: #E6F5ED;
+    border: 1px solid #A7F3D0;
+    color: #1A7A4A;
+}
+
+/* 부정 */
+.wc-badge.neg {
+    background-color: #FAE8E6;
+    border: 1px solid #FECACA;
+    color: #C0392B;
+}
+
+/* 중립 */
+.wc-badge.neutral {
+    background-color: #F5F0E8;
+    border: 1px solid #E8DCC8;
+    color: #5C4A2A;
+}
+
+.wc-badge:hover {
+    transform: scale(1.1);
+}

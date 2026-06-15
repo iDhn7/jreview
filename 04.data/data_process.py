@@ -62,6 +62,8 @@ class DataProcess:
     def ProcessInfo(self):
         print("\n--- STORE 데이터 등록 ---")
 
+
+        '''
         """
         기존 데이터를 삭제한다.
         """    
@@ -69,6 +71,7 @@ class DataProcess:
         self.db.RunSQL("DELETE FROM REVIEW")
         self.db.RunSQL("DELETE FROM MENU")
         self.db.RunSQL("DELETE FROM STORE")
+        '''
 
         total = len(self.df_info)
 
