@@ -7,7 +7,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 from review_report import review_improvement_report
-from review_define import run_reivew_predict
+from review_define import run_review_predict
 
 from modules.DBManager import DBManager
 
@@ -110,8 +110,12 @@ class DataProcess:
         for i, row in self.df_menu.iterrows():
             content = str(row['메뉴내용']) if pd.notna(row['메뉴내용']) else ""
             is_best = 1 if '대표메뉴' in content else 0
-            
-            datas = (row['업체코드'], row['메뉴명'], int(row['메뉴가격']), 0, is_best)
+            # 숫자가 아닌 값 예외
+            try:
+                price = int(row['메뉴가격'])
+            except (ValueError, TypeError):
+                price = 0   # '무료' 등 숫자가 아닌 값 방어
+            datas = (row['업체코드'], row['메뉴명'], price, 0, is_best)
             self.db.RunSQL(sql, datas)
 
     def ProcessReview(self):
@@ -137,9 +141,19 @@ class DataProcess:
             print(f"{ i + 1 } / { total }번째 리뷰 처리중....")
 
             #긍정,부정 등을 검사한다.
-            word_pn,pn_score = run_reivew_predict(row['리뷰내용']);
+            try:
+                word_pn,pn_score = run_review_predict(row['리뷰내용']);
+            except (ValueError, TypeError):
+                print(f"  ↳ 리뷰내용 형식 오류, 건너뜀: {row['리뷰내용']}")
+                continue
 
-            dt = datetime.strptime(row['작성일'], "%Y-%m-%d")
+            # 코드 터짐 방지 예외처리
+            try:
+                dt = datetime.strptime(str(row['작성일']).strip(), "%Y-%m-%d")
+            except (ValueError, TypeError):
+                print(f"  ↳ 작성일 형식 오류, 건너뜀: {row['작성일']}")
+                continue
+
             datas = (
                 row['업체코드'], row['리뷰내용'], row['작성일'], 
                 dt.year, dt.month, dt.day, word_pn, pn_score

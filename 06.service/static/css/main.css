@@ -1186,3 +1186,8 @@
   color: var(--text-3);
   font-size: 11px;
 }
+
+.b-img {
+  width: 400px;
+  height: 200px;
+}

@@ -54,7 +54,7 @@ def load_model():
     _isLoaded = True
 
 
-def run_reivew_predict(review: str) -> dict:
+def run_review_predict(review: str) -> dict:
     """
     review : 리뷰 문자열 (단일)
     반환   : {"감성": "긍정", "원래감성": "기쁨", "긍정확률": 0.92, "부정확률": 0.05, "중립확률": 0.03}
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     count = 0
     for review in review_list:
-        result = run_reivew_predict(review)
+        result = run_review_predict(review)
         print(f"리뷰  : {review}")
         print(f"결과  : {result}\n")
         print("=" * 40)        
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
 
 """
-x, y = run_reivew_predict("정말 맛있어요.")
+x, y = run_review_predict("정말 맛있어요.")
 print(f"긍부정 여부 : {x}")
 print(f"긍부정 확률 : {y}")
 """

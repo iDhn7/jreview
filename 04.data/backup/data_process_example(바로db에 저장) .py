@@ -11,7 +11,7 @@
 import pandas as pd
 import numpy as np
 import re
-from  review_define import run_reivew_predict
+from  review_define import run_review_predict
 from review_report import review_improvement_report
 
 class DataProcess :
