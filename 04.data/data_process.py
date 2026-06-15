@@ -1,3 +1,17 @@
+"""
+모듈명 : 맛집 리뷰 데이터 파이프라인 (ETL) 및 AI 리포트 자동화 적재
+작성일 : 26.06.15
+최종 변경일 : 26.06.15
+작성자 : 송민석, 손민건
+구현내용 : 
+CSV 파일(식당리스트, 식당정보, 메뉴, 리뷰)을 읽어와 전처리 후 MySQL DB에 적재하는  프로그램.
+초기에는 데이터 적재와 AI 분석을 한 번에 묶어서 처리하려 했으나, API 토큰 제한과 중간 멈춤 현상 발생.
+이를 해결하기 위해 기본 데이터 적재 함수와 AI 리포트 생성 함수를 분리함.
+Ai 리포트의 경우 토큰제한문제로 19개까지 생성 
+
+
+"""
+
 import os
 import time
 from konlpy.tag import Okt
@@ -204,7 +218,7 @@ class DataProcess:
     def RunAfter(self) :
         print("\n--- 마무리 작업: 메뉴 언급 횟수 업데이트 ---")
         
-        
+       # "REVIEW(리뷰) 테이블에서 메뉴 이름이 들어간 리뷰 개수를 세어, MENU(메뉴) 테이블의 CNT 컬럼에 저장하는 쿼리입니다."
         sql = """
             UPDATE MENU M
             SET CNT = (
@@ -221,7 +235,7 @@ class DataProcess:
         except Exception as e:
             print(f"메뉴 언급 횟수 업데이트 중 오류 발생: {e}")  
 
-        #AI 개선사항 업데이트 
+        #AI 개선사항 업데이트  , "CSV 파일에서 읽어온 데이터프레임(df)의 리뷰 내용을 AI로 분석하여, 아직 결과가 없는 가게(STORE) 테이블의 데이터베이스에 분석 내용을 저장하는 코드
     def ProcessAIReport(self) :
         print("\n--- AI 개선사항 업데이트 ---")
         
@@ -263,16 +277,22 @@ if __name__ == "__main__":
     if data.DBOpen():
         try:
             #기본 데이터 등록 처리
-            data.ProcessInfo()
+            #가게 데이터 등록 
+            #data.ProcessInfo()
+            #메뉴 데이터 등록 
             #data.ProcessMenu()
+            #리뷰 데이터 등록
             #data.ProcessReview()
 
             #데이터 등록 후 마무리 작업처리
-            #data.ProcessAIReport()
+            #AI 리포트 등록, 이게 api 키쓰는 작업 
+            data.ProcessAIReport()
+            #메뉴 언급 횟수 
             #data.RunAfter()
             
             #print("\n STORE, MENU, REVIEW 데이터 이관이 완료되었습니다!")
             print("\n AI 리포트 업데이트가 완료되었습니다!")
+            #print("\n 메뉴 언급 횟수 업데이트가 완료되었습니다!")
         except Exception as e:
             print(f"오류 발생: {e}")
         finally:
