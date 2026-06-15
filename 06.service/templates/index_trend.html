@@ -13,10 +13,10 @@
     <div class="region-row">
       <span class="region-name">{{ area.AREA }}</span>
       <div class="region-bar-wrap">
-        <div class="region-bar-pos" style="width: {{ area.AVG_PN_RATE }}%;"></div>
-        <div class="region-bar-neg" style="width: {{ area.AVG_NN_RATE }}%;"></div>
+        <div class="region-bar-pos" style="width: {{ area.AVG_PN_RATE | default(0) }}%; background-color: #4CAF50;"></div>
+        <div class="region-bar-neg" style="width: {{ area.AVG_NN_RATE | default(0) }}%; background-color: #f44336;"></div>
       </div>
-      <span class="region-pct-pos">{{ area.AVG_PN_RATE }}%</span>
+      <span class="region-pct-pos">{{ area.AVG_PN_RATE | default(0) }}%</span>
     </div>
     {% endfor %}
   {% else %}
