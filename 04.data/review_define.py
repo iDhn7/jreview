@@ -4,7 +4,7 @@
 작성자 : 정정훈
 
 ※ 필요 패키지 설치
-    pip install transformers torch sentencepiece pandas tqdm
+    pip install transformers torch sentencepiece pandas tqdm  --link-mode=copy
 """
 
 import warnings
