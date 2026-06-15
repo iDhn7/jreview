@@ -1,0 +1,28 @@
+<div class="detail-header">
+    <button class="back-btn" onclick="showPage('main')">← 목록으로 돌아가기</button>
+    <div class="detail-title-row">
+      <div style="display:flex; gap: 1rem; align-items: flex-start;">
+        <!-- DB에서 카테고리에 맞는 이모지(☕, 🍚 등)가 여기에 동적으로 들어갑니다 -->
+        <div class="detail-icon" id="detail-icon">⏳</div>
+        <div class="detail-info">
+          <!-- 실시간 DB 데이터 렌더링 대상 영역 -->
+          <div class="detail-name" id="detail-name">가게 정보를 불러오는 중입니다...</div>
+          <div class="detail-meta">
+            <span id="detail-category">-</span>
+            <span class="detail-meta-sep">·</span>
+            <!-- DB의 평점(STAR)에 비례하여 노란 별이 동적으로 채워집니다 -->
+            <span class="rating-stars" id="detail-stars" style="color: #F1C40F;">☆☆☆☆☆</span>
+            <span id="detail-rating">0.0</span>
+            <span class="detail-meta-sep">·</span>
+            <span id="detail-reviews">리뷰 0개</span>
+            <span class="detail-meta-sep">·</span>
+            <span id="detail-location">-</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap: 8px;">
+        <!-- DB의 실시간 긍정율(PN_RATE)이 여기에 동적으로 꽂힙니다 -->
+        <div style="background: var(--pos-bg); color: var(--pos); font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 8px;" id="detail-pos-pct">긍정 -%</div>
+      </div>
+    </div>
+</div>

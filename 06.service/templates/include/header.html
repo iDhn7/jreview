@@ -1,0 +1,18 @@
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전주 리뷰 인사이트 — 여행객을 위한 업체 분석 서비스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto Sans KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="/static/css/main.css">
+<script>
+  // 따옴표로 감싸서 VS Code가 에러로 인식하지 않게 합니다.
+  const dbBusinesses = JSON.parse('{{ businesses|tojson | safe if businesses else "[]" }}');
+  const dbTrendArea = JSON.parse('{{ trend_area|tojson | safe if trend_area else "[]" }}');
+  const dbTrendSeason = JSON.parse('{{ trend_season|tojson | safe if trend_season else "[]" }}');
+  const dbTrendRecent = JSON.parse('{{ trend_recent|tojson | safe if trend_recent else "[]" }}');
+</script>
+<script src="/static/js/main.js" defer></script>
+</head>
