@@ -381,9 +381,8 @@ function renderStoreDetail(data) {
       reportContainer.innerHTML = aiReportHtml;
     }
   }
-  // ==========================================================================
-  // 5. [보강 완료] 월별 방문 추천도 계산 및 가로 막대그래프 렌더링
-  // ==========================================================================
+
+  // 5. 월별 방문 추천도 계산 및 가로 막대그래프 렌더링
   const barsContainer = document.getElementById('visitBars');
   const bestMonthEl = document.getElementById('best-visit-months');
 
@@ -459,9 +458,7 @@ function renderStoreDetail(data) {
     }
   }
 
-  // ==========================================================================
-  // 6. [보강 완료] 계절별 리뷰 통계 및 긍정률 카드 렌더링
-  // ==========================================================================
+  // 6. 계절별 리뷰 통계 및 긍정률 카드 렌더링
   if (data.reviews) {
     // 계절별 기본 메타 데이터 구조 정의
     const seasons = {
