@@ -27,7 +27,7 @@ app = Flask(__name__)
 db.DBOpen(
     host=os.getenv("host"),
     id=os.getenv("user"),
-    pw=os.getenv("passwd"),
+    pw=os.getenv("passwd"), 
     dbname=os.getenv("dbname")
 )
 print(os.getenv("host"), os.getenv("user"), os.getenv("passwd"), os.getenv("dbname"))

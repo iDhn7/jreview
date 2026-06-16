@@ -164,7 +164,7 @@ class DataProcess:
                 print(f"  ↳ 리뷰내용 형식 오류, 건너뜀: {row['리뷰내용']}")
                 continue
 
-            # 코드 터짐 방지 예외처리
+            # 코드 터짐 방지 예외처리, 
             try:
                 dt = datetime.strptime(str(row['작성일']).strip(), "%Y-%m-%d")
             except (ValueError, TypeError):
@@ -310,13 +310,13 @@ if __name__ == "__main__":
 
             #데이터 등록 후 마무리 작업처리
             #AI 리포트 등록, 이게 api 키쓰는 작업 
-            #data.ProcessAIReport()
+            data.ProcessAIReport()
             #메뉴 언급 횟수 
-            data.RunAfter()
+            #data.RunAfter()
             
             #print("\n STORE, MENU, REVIEW 데이터 이관이 완료되었습니다!")
-            #print("\n AI 리포트 업데이트가 완료되었습니다!")
-            print("\n 메뉴 언급 횟수 업데이트가 완료되었습니다!")
+            print("\n AI 리포트 업데이트가 완료되었습니다!")
+            #print("\n 메뉴 언급 횟수 업데이트가 완료되었습니다!")
         except Exception as e:
             print(f"오류 발생: {e}")
         finally:

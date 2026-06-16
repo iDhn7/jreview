@@ -1,8 +1,8 @@
   :root {
-    --bg: #F5F0E8;
-    --bg2: #FFFDF8;
+    --bg: #c2baa7;
+    --bg2: #c2baa7;
     --surface: #FFFFFF;
-    --primary: #C8530A;
+    --primary: #35240f;
     --primary-light: #F5E6DC;
     --primary-dark: #8B3506;
     --accent: #2B5C3F;
@@ -606,7 +606,8 @@
     padding: 2rem;
   }
 
-  /* TREND SECTION */
+  /* 
+  ND SECTION */
   .section-header {
     display: flex;
     align-items: center;
@@ -625,6 +626,7 @@
   .section-title::before {
     content: '';
     width: 4px;
+    
     height: 18px;
     background: var(--primary);
     border-radius: 2px;

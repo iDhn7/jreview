@@ -1,7 +1,7 @@
 """
 모듈명 : 맛집 리뷰를 이용한 LangChain / LCEL 기반 RAG 서비스 모듈
 작성일 : 2026.06.16
-pip install torch transformers langchain-core langchain-groq langchain-huggingface langchain-community faiss-cpu pandas
+pip install torch transformers langchain-core langchain-groq langchain-huggingface langchain-community faiss-cpu pandas sentence-transformers
 """
 
 import os
