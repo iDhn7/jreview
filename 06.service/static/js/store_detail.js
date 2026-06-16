@@ -1,5 +1,14 @@
 // 📝 static/js/store_detail.js
 
+
+// 카카오맵 사전 초기화
+// 스크립트가 늦게 로드되더라도 브라우저가 kakao를 인식할 수 있게 최상단에서
+if (typeof kakao !== 'undefined' && kakao.maps) {
+    kakao.maps.load(function() {
+        console.log("카카오 맵 엔진 수동 이니셜라이징 완료");
+    });
+}
+
 // 상세 데이터 DOM 조작 및 동적 할당 함수
 function renderStoreDetail(data) {
   // [보강] 데이터가 유효한지 안전 검사
@@ -103,13 +112,54 @@ function renderStoreDetail(data) {
         }
     }
     
+    // 카카오맵
+    const mapContainer = document.getElementById('mapBox');
+    
+    // window.kakao가 완벽히 존재할 때만
+    if (mapContainer && s.LAT && s.LNG && window.kakao && window.kakao.maps) {
+        
+        // 카카오 비동기 로드
+        kakao.maps.load(function() {
+            const mapOption = {
+                center: new kakao.maps.LatLng(parseFloat(s.LAT), parseFloat(s.LNG)), // 위경도 수치화 변환
+                level: 3 // 지도 확대 레벨
+            };
+
+            // 카카오 지도 객체 생성
+            const map = new kakao.maps.Map(mapContainer, mapOption);
+
+            // 마커 및 마킹 좌표 설정
+            const markerPosition = new kakao.maps.LatLng(parseFloat(s.LAT), parseFloat(s.LNG));
+            const marker = new kakao.maps.Marker({
+                position: markerPosition
+            });
+
+            // 지도 위에 마커 탑탑 고정
+            marker.setMap(map);
+
+            // 말풍선
+            const storeName = s.STORE_NAME || '선택한 맛집';
+            const iwContent = `<div style="padding:5px; font-size:12px; font-weight:700; color:var(--text); text-align:center; min-width:150px;">${storeName}</div>`;
+            
+            const infowindow = new kakao.maps.InfoWindow({
+                content: iwContent
+            });
+            
+            // 지도 진입 즉시 말풍선
+            infowindow.open(map, marker);
+        });
+    }
+
     // 카카오맵 버튼 클릭 이벤트
+    /*
     const mapBtn = document.getElementById('btn-kakaomap');
     if (mapBtn) {
         mapBtn.onclick = function() {
             window.open(`https://map.kakao.com/?q=${encodeURIComponent(fullAddress)}`, '_blank');
         };
     }
+    */
+
     // --원형 차트--
     // 맨 위에서 계산한 퍼센트 개수 받아먹기
     document.getElementById('pie-pos-pct').textContent = `${posRate}%`;
@@ -252,7 +302,7 @@ function renderStoreDetail(data) {
     }
   }
 
-  // 30 일별 꺾은선 그래프
+  // 30 일별 막대 그래프
   const trendCtx = document.getElementById('detailTrendChart');
     if (trendCtx) {
         // 초기화
@@ -272,7 +322,7 @@ function renderStoreDetail(data) {
         const posColor = getComputedStyle(document.documentElement).getPropertyValue('--pos').trim() || '#1A7A4A';
         const negColor = getComputedStyle(document.documentElement).getPropertyValue('--neg').trim() || '#C0392B';
 
-        // 꺾은선타입으로 렌더링
+        // 막대그래프 렌더링
         window.myTrendChart = new Chart(trendCtx, {
             type: 'bar', 
             data: {
@@ -282,9 +332,7 @@ function renderStoreDetail(data) {
                         label: '긍정 리뷰',
                         data: posData,
                         borderColor: posColor,       
-                        backgroundColor: posColor + '15', 
-                        borderWidth: 3,              
-                        tension: 0.3,
+                        backgroundColor: posColor + '90', 
                         pointRadius: 3,    
                         fill: true   
                     },
@@ -292,9 +340,7 @@ function renderStoreDetail(data) {
                         label: '부정 리뷰',
                         data: negData,
                         borderColor: negColor,   
-                        backgroundColor: negColor + '15', 
-                        borderWidth: 3,
-                        tension: 0.3,
+                        backgroundColor: negColor + '90', 
                         pointRadius: 3,
                         fill: true
                     }
@@ -308,12 +354,10 @@ function renderStoreDetail(data) {
                 },
                 scales: {
                     x: {
-                        stacked: true,
                         grid: { display: false }, // X축 격자선은 숨겨서 심플하고 정갈하게 표현
                         ticks: { color: '#64748B', font: { size: 11 } }
                     },
                     y: {
-                        stacked: true,
                         beginAtZero: true, // Y축 눈금선은 0부터 정직하게 시작
                         grid: { color: '#E2E8F0' }, // 은은한 회색 격자선
                         ticks: { 
@@ -503,5 +547,6 @@ function renderStoreDetail(data) {
         if (metaNode) metaNode.textContent = `긍정 · 리뷰 ${s.total}개`;
       }
     }
+    
   }
 }
