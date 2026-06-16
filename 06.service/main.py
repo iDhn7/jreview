@@ -36,10 +36,12 @@ print(os.getenv("host"), os.getenv("user"), os.getenv("passwd"), os.getenv("dbna
 # db 객체가 먼저 메모리에 바인딩된 후 하위 라우터를 import해야 순서 에러가 안 납니다
 from routes.main_route import main_bp
 from routes.store_route import store_bp
+from routes.rag_route import rag_bp
 
 # 각각의 하위 블루프린트 합체
 app.register_blueprint(main_bp)
 app.register_blueprint(store_bp)
+app.register_blueprint(rag_bp)
 
 # [워크플로우 3단계: 애플리케이션 실행]
 if __name__ == "__main__" :

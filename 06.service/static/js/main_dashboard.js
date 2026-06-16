@@ -172,26 +172,187 @@ function navSearch(q) {
 }
 
 /* ===== RAG AI 어시스턴트 검색 및 인터랙션 오버레이 활성화 ===== */
+/**
+ * 1. 메인 화면의 메인 검색창(돋보기 버튼 등)에서 RAG 검색을 시작할 때 호출되는 진입 함수
+ */
 function ragSearch() {
   const input = document.getElementById('ragInput');
   if (!input || !input.value.trim()) return;
 
   const query = input.value.trim();
-  
-  // 오버레이 활성화 활싱화
+  input.value = ''; // 다음 입력을 위해 메인 입력창 초기화
+
+  // 🚀 핵심: 오버레이 창을 열면서 사용자가 입력한 검색 질의를 비동기 실행 파이프라인으로 토스
+  openRagOverlay(query);
+}
+
+/**
+ * 2. RAG 오버레이 창을 열어주는 스위치 함수 (초기 질문이 담겨있다면 즉시 검색 실행)
+ */
+function openRagOverlay(initialQuery = '') {
   const overlay = document.getElementById('ragOverlay');
   const backdrop = document.getElementById('ragOverlayBackdrop');
+  
   if (overlay) overlay.classList.add('open');
   if (backdrop) backdrop.classList.add('open');
-
-  const body = document.getElementById('ragOverlayBody');
-  if (body) {
-    body.innerHTML = `
-      <div class="chat-msg user"><div class="msg-box">${query}</div></div>
-      <div class="chat-msg ai"><div class="msg-box loading">✦ AI가 리뷰 빅데이터 분석을 토대로 답변을 구성하고 있습니다...</div></div>
-    `;
+  
+  // 만약 메인 검색창에서 질의어가 들어왔다면, 대화창을 초기화하고 즉시 RAG API 기동
+  if (initialQuery.trim() !== '') {
+    const body = document.getElementById('ragOverlayBody');
+    if (body) body.innerHTML = ''; // 기존 대화 요소를 깔끔히 비움
+    
+    executeRagQuery(initialQuery);
   }
-  input.value = '';
+}
+
+/**
+ * 3. RAG 오버레이 팝업창 닫기 스위치
+ */
+function closeRagOverlay() {
+  const overlay = document.getElementById('ragOverlay');
+  const backdrop = document.getElementById('ragOverlayBackdrop');
+  
+  if (overlay) overlay.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+}
+
+/**
+ * 4. 챗봇 오버레이 창 내부 하단 푸터(Footer)의 [전송] 버튼이나 엔터 키 입력 시 추가 질의를 처리하는 함수
+ */
+function sendRagOverlayMessage() {
+  const input = document.getElementById('ragOverlayInput');
+  if (!input || !input.value.trim()) return;
+
+  const query = input.value.trim();
+  input.value = ''; // 챗봇 내부 입력창 비우기
+  
+  // 연속형 대화 형태로 기존 창에 누적하여 쿼리 실행
+  executeRagQuery(query);
+}
+
+/**
+ * 5. [핵심 엔진] Flask 블루프린트 백엔드와 비동기 통신하여 대화창 UI에 데이터를 동적 렌더링하는 함수
+ */
+function executeRagQuery(query) {
+  const body = document.getElementById('ragOverlayBody');
+  if (!body) return;
+
+  // [STEP A] 사용자가 입력한 질문 블록을 대화창 화면에 추가
+  const userMsgHtml = `
+    <div class="chat-msg user">
+      <div class="msg-box">${query}</div>
+    </div>
+  `;
+  body.innerHTML += userMsgHtml;
+  
+  // 로딩 상태 박스를 제어하기 위한 고유 ID 발급
+  const loadingId = 'loading_' + Date.now();
+  
+  // [STEP B] AI 빅데이터 연산 중임을 알리는 스켈레톤 로딩 애니메이션 추가
+  const aiLoadingHtml = `
+    <div class="chat-msg ai" id="${loadingId}">
+      <div class="msg-box loading">
+        ✦ AI가 리뷰 빅데이터 분석을 토대로 답변을 구성하고 있습니다...
+      </div>
+    </div>
+  `;
+  body.innerHTML += aiLoadingHtml;
+  body.scrollTop = body.scrollHeight; // 새로운 대화 유입에 맞춰 스크롤을 맨 아래로 고정
+
+  // [STEP C] Fetch API를 이용하여 새로 리팩토링한 블루프린트 라우터(/api/rag)로 비동기 POST 통신 요청
+  fetch('/api/rag', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query: query })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('네트워크 응답 시스템에 오류가 발생했습니다.');
+    return res.json();
+  })
+  .then(data => {
+    // 백엔드 응답이 완료되었으므로 로딩 애니메이션 엘리먼트 제거
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) loadingEl.remove();
+
+    // [STEP D] RAGManager가 돌려준 가공된 데이터 덩어리를 HTML 템플릿으로 구조화
+    let aiResponseHtml = `
+      <div class="chat-msg ai">
+        <div class="msg-box">
+          <div class="ai-answer" style="white-space: pre-wrap; line-height: 1.6; font-size: 13px;">${data.answer}</div>
+    `;
+
+    // 2) 출처 및 기반 데이터 (실제 고객 리뷰 팩트 체크 영역) 연동
+    if (data.referenced_reviews && data.referenced_reviews.length > 0) {
+      aiResponseHtml += `
+        <div class="rag-reference-section" style="margin-top: 12px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+          <div style="font-size: 11px; font-weight: 700; color: #718096; margin-bottom: 4px;">🎯 분석에 참조된 실제 리뷰 근거:</div>
+          <ul style="margin: 0; padding-left: 16px; font-size: 11px; color: #4a5568; display: flex; flex-direction: column; gap: 4px;">
+            ${data.referenced_reviews.map(rev => `<li>"${rev}"</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // 3) 추천 매장 카드 그리드 연동 (상권 및 긍정율 데이터 매핑)
+    if (data.recommendations && data.recommendations.length > 0) {
+      aiResponseHtml += `
+        <div class="rag-recommend-section" style="margin-top: 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--primary, #C8530A); margin-bottom: 6px;">✨ 빅데이터 기반 추천 맛집:</div>
+          <div class="rec-grid" style="display: flex; flex-direction: column; gap: 6px;">
+            ${data.recommendations.map(store => `
+              <div class="rec-store-item" style="background: #fdfaf7; border: 1px solid #fbdcbd; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span style="font-weight: 700; font-size: 12px; color: var(--text, #2D3748);">${store.store_name}</span>
+                  <span style="font-size: 10px; color: var(--text-3, #718096); margin-left: 4px;">| ${store.category} · ${store.address}</span>
+                </div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--pos, #2ECC71);">👍 긍정율 ${store.pn_rate}%</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 4) 후속 유도용 AI 스마트 추천 질문 칩(Chip) 바인딩
+    if (data.recommended_queries && data.recommended_queries.length > 0) {
+      aiResponseHtml += `
+        <div class="rag-chips-section" style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px;">
+          ${data.recommended_queries.map(chipQuery => `
+            <button class="rag-suggest-chip" onclick="executeRagQuery('${chipQuery.replace(/'/g, "\\'")}')" 
+                    style="background: #ffffff; border: 1px solid #cbd5e0; border-radius: 14px; padding: 4px 10px; font-size: 11px; color: #4a5568; cursor: pointer; transition: all 0.2s; font-weight: 500;">
+              💡 ${chipQuery}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    aiResponseHtml += `
+        </div>
+      </div>
+    `;
+
+    // 컴포넌트를 조립한 최종 답변 덩어리를 채팅창에 추가하고 하단 스크롤
+    body.innerHTML += aiResponseHtml;
+    body.scrollTop = body.scrollHeight;
+  })
+  .catch(err => {
+    console.error("❌ RAG 엔진 비동기 통신 에러 발생:", err);
+    // 예외 발생 시 로딩 지우고 에러 알림 처리
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) loadingEl.remove();
+    
+    body.innerHTML += `
+      <div class="chat-msg ai">
+        <div class="msg-box" style="color: #E53E3E; font-weight: 600;">
+          ⚠️ 서버와 실시간 데이터 분석을 연결하는 과정에서 일시적인 장애가 발생했습니다. 잠시 후 다시 시도해 주세요.
+        </div>
+      </div>
+    `;
+    body.scrollTop = body.scrollHeight;
+  });
 }
 
 function ragPreset(el) {
