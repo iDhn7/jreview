@@ -363,4 +363,22 @@ function renderStoreDetail(data) {
       }
     }
   }
+
+  // 4. AI 개선 리포트 동적 생성 (HTML 통째로 주입하는 방식)
+  const reportContainer = document.getElementById('reportGrid');
+  
+  if (reportContainer && data.store) {
+    // DB의 STORE 테이블에서 AI_REPORT 컬럼 값을 가져옴
+    const aiReportHtml = data.store.AI_REPORT;
+    
+    if (!aiReportHtml || aiReportHtml.trim() === "") {
+      // 리포트 데이터가 비어있거나 아직 생성되지 않은 경우
+      reportContainer.innerHTML = `
+        <div class="no-data" style="grid-column: 1/-1; text-align: center; color: var(--text-3); padding: 20px;">
+          분석된 AI 개선 리포트가 없습니다.
+        </div>`;
+    } else {
+      reportContainer.innerHTML = aiReportHtml;
+    }
+  }
 }
