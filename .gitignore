@@ -3,4 +3,6 @@
 .vscode/
 __pycache__/
 *.py[cod]
-
+uv.lock
+.python-version
+pyproject.toml
