@@ -326,24 +326,41 @@ function renderStoreDetail(data) {
         });
     }
 
-  // 3. 실제 리뷰 샘플 리스트 동적 생성 (view_sample.html 연동)
-  const reviewContainer = document.getElementById('det-review-list');
-  if (reviewContainer && data.reviews) {
-    if (data.reviews.length === 0) {
-      reviewContainer.innerHTML = '<div class="no-data">수집된 리뷰가 존재하지 않습니다.</div>';
-    } else {
-      reviewContainer.innerHTML = data.reviews.map(r => {
-        const isPos = r.REVIEW_PN === 'P';
-        const className = isPos ? 'review-pos' : 'review-neg';
-        const prefix = isPos ? '👍 긍정 수집 후기' : '👎 개선 요구 후기';
-        
-        return `
-          <div class="review-item ${className}">
-            <div class="review-label">${prefix} (점수: ${Number(r.PN_SCORE || 0).toFixed(2)})</div>
+  // 3. 실제 리뷰 샘플 리스트 동적 생성 
+  const posContainer = document.getElementById('det-pos-list');
+  const negContainer = document.getElementById('det-neg-list');
+
+  if (data.reviews) {
+    // 3-1. 긍정(P) 리뷰 필터링 및 최대 2개 추출
+    const posReviews = data.reviews.filter(r => r.REVIEW_PN === 'P').slice(0, 2);
+    
+    if (posContainer) {
+      if (posReviews.length === 0) {
+        posContainer.innerHTML = '<div class="no-data">수집된 긍정 리뷰가 없습니다.</div>';
+      } else {
+        posContainer.innerHTML = posReviews.map(r => `
+          <div class="review-item review-pos">
+            <div class="review-label">👍 긍정 후기 (점수: ${Number(r.PN_SCORE || 0).toFixed(2)})</div>
             <div class="review-text">${r.CONTENT}</div>
           </div>
-        `;
-      }).join('');
+        `).join('');
+      }
+    }
+
+    // 3-2. 부정/개선(N 또는 F) 리뷰 필터링 및 최대 2개 추출
+    const negReviews = data.reviews.filter(r => r.REVIEW_PN === 'N' || r.REVIEW_PN === 'F').slice(0, 2);
+    
+    if (negContainer) {
+      if (negReviews.length === 0) {
+        negContainer.innerHTML = '<div class="no-data">수집된 개선 요구 리뷰가 없습니다.</div>';
+      } else {
+        negContainer.innerHTML = negReviews.map(r => `
+          <div class="review-item review-neg">
+            <div class="review-label">👎 개선 요구 후기 (점수: ${Number(r.PN_SCORE || 0).toFixed(2)})</div>
+            <div class="review-text">${r.CONTENT}</div>
+          </div>
+        `).join('');
+      }
     }
   }
 }
