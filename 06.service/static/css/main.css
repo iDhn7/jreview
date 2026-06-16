@@ -987,8 +987,74 @@
     white-space: nowrap;
   }
   .wc-word:hover { transform: scale(1.08); }
+/* TREND WORDS */
 
-  /* TREND WORDS */
+
+  .trend-chart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 15px 0;
+  }
+
+  /* 원형 그래프(파이 차트) 기본 스타일 */
+  .pie-chart {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%; /* 이 속성이 그래프를 완벽한 원으로 만듭니다 */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    position: relative; /* 도넛 형태의 중앙 원을 배치하기 위함 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 중앙에 하얀 원을 뚫어 '점유율' 텍스트를 깔끔하게 보여주는 도넛 효과 */
+  .pie-chart::after {
+    content: "점유율";
+    position: absolute;
+    width: 60px; /* 가운데 흰색 원의 크기 (조절 가능) */
+    height: 60px;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--text-2, #333);
+  }
+
+  /* 범례(Legend) 스타일 */
+  .chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: var(--text-2, #333);
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 8px;
+  }
+
+  .legend-percent {
+    margin-left: auto;
+    padding-left: 15px;
+    font-weight: bold;
+    color: var(--text-1, #111);
+  }
+
+  /* TREND WORDS
   .trend-words-grid {
     display: flex;
     flex-direction: column;
@@ -1017,7 +1083,7 @@
     font-weight: 500;
   }
   .trend-tag-pos { background: var(--pos-bg); border-color: #A7F3D0; color: var(--pos); }
-  .trend-tag-neg { background: var(--neg-bg); border-color: #FECACA; color: var(--neg); }
+  .trend-tag-neg { background: var(--neg-bg); border-color: #FECACA; color: var(--neg); } */
 
   /* MAP PLACEHOLDER */
   .map-placeholder {

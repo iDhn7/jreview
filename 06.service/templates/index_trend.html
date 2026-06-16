@@ -13,10 +13,10 @@
     <div class="region-row">
       <span class="region-name">{{ area.AREA }}</span>
       <div class="region-bar-wrap">
-        <div class="region-bar-pos" style="width: {{ area.AVG_PN_RATE | default(0) }}%; background-color: #4CAF50;"></div>
-        <div class="region-bar-neg" style="width: {{ area.AVG_NN_RATE | default(0) }}%; background-color: #f44336;"></div>
+          <div class="region-bar-pos" style="width: {{ area['AVG_PN_RATE'] | default(0, true) }}%; background-color: #4CAF50;"></div>
+          <div class="region-bar-neg" style="width: {{ area['AVG_NN_RATE'] | default(0, true) }}%; background-color: #f44336;"></div>
       </div>
-      <span class="region-pct-pos">{{ area.AVG_PN_RATE | default(0) }}%</span>
+      <span class="region-pct-pos">{{ area['AVG_PN_RATE'] | default(0, true) }}%</span>
     </div>
     {% endfor %}
   {% else %}
@@ -50,8 +50,48 @@
   {% endif %}
 </div>
 
-
 <div class="trend-chart-container" style="margin-top: 16px;">
+  {% if trend_recent %}
+    {# 1. 색상 배열 (기존 CSS에 있던 색상 코드 사용) #}
+    {% set colors = ['#FF9F40', '#FFCD56', '#4BC0C0', '#36A2EB'] %}
+    
+    {# 2. conic-gradient 동적 생성 #}
+    {% set ns = namespace(current_pct=0, gradient_str='') %}
+    {% for recent in trend_recent %}
+      {% set ratio = recent.RATIO | float %}
+      {% set next_pct = ns.current_pct + ratio %}
+      {% set comma = ', ' if not loop.first else '' %}
+      
+      {% set ns.gradient_str = ns.gradient_str ~ comma ~ colors[loop.index0 % 4] ~ ' ' ~ ns.current_pct ~ '% ' ~ next_pct ~ '%' %}
+      {% set ns.current_pct = next_pct %}
+    {% endfor %}
+
+    {# 3. 원형 그래프 렌더링 (텍스트는 위 CSS의 ::after에서 처리함) #}
+    <div id="trendRecentPieChart" class="pie-chart" style="background: conic-gradient({{ ns.gradient_str }});">
+    </div>
+    
+    {# 4. 범례 렌더링 #}
+    <div class="chart-legend">
+      {% for recent in trend_recent %}
+      <div class="legend-item" style="margin-bottom: 6px;">
+        <div class="legend-color" style="background: {{ colors[loop.index0 % 4] }};"></div>
+        <span style="font-weight: 500;">{{ recent.AREA }}</span>
+        <span class="legend-percent">{{ recent.RATIO }}%</span>
+        <span style="font-size: 10px; color: var(--text-3, #888); margin-left: 4px;">({{ recent.RECENT_REVIEW_CNT }}건)</span>
+      </div>
+      {% endfor %}
+    </div>
+    
+  {% else %}
+    {# 데이터가 없을 때 #}
+    <div id="trendRecentPieChart" class="pie-chart" style="background: #f0f0f0;"></div>
+    <div class="chart-legend">
+      <div style="font-size: 12px; color: var(--text-3, #888);">통계가 없습니다.</div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- <div class="trend-chart-container" style="margin-top: 16px;">
   <div id="trendRecentPieChart" class="pie-chart" style="display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: var(--text-2);">
     점유율
   </div>
@@ -71,4 +111,6 @@
       <div style="font-size: 12px; color: var(--text-3);">통계가 없습니다.</div>
     {% endif %}
   </div>
-</div>
+</div> -->
+
+ 

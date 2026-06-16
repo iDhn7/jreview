@@ -237,6 +237,27 @@ class DataProcess:
             print("메뉴 언급 횟수(CNT) 업데이트가 성공적으로 완료되었습니다!")
         except Exception as e:
             print(f"메뉴 언급 횟수 업데이트 중 오류 발생: {e}")  
+            # -----------------------------------------------------
+        # 2. 추가된 로직: 식당별 평균 긍정 점수(PN_RATE) 업데이트
+        # -----------------------------------------------------
+        # REVIEW 테이블에 있는 해당 식당의 PN_SCORE(긍정 점수) 평균을 구해서 STORE에 덮어씁니다.
+        # IFNULL을 써서 리뷰가 없는(Null) 식당은 0으로 처리합니다.
+        
+        sql = """
+            UPDATE STORE S
+            SET PN_RATE = (
+                -- 기존: SELECT IFNULL(AVG(PN_SCORE), 0)
+                -- 수정: 평균값에 100을 곱하고 반올림하여 정수로 변환
+                SELECT IFNULL(ROUND(AVG(PN_SCORE) * 100), 0)
+                FROM REVIEW R
+                WHERE R.STORE_CODE = S.STORE_CODE
+            )
+        """
+        try:
+            self.db.RunSQL(sql)
+            print("▶ 2. 식당별 평균 긍정률(PN_RATE) 일괄 업데이트 완료!")
+        except Exception as e:
+            print(f"PN_RATE 업데이트 오류: {e}")
 
         #AI 개선사항 업데이트  , "CSV 파일에서 읽어온 데이터프레임(df)의 리뷰 내용을 AI로 분석하여, 아직 결과가 없는 가게(STORE) 테이블의 데이터베이스에 분석 내용을 저장하는 코드
     def ProcessAIReport(self) :
@@ -289,13 +310,13 @@ if __name__ == "__main__":
 
             #데이터 등록 후 마무리 작업처리
             #AI 리포트 등록, 이게 api 키쓰는 작업 
-            data.ProcessAIReport()
+            #data.ProcessAIReport()
             #메뉴 언급 횟수 
-            #data.RunAfter()
+            data.RunAfter()
             
             #print("\n STORE, MENU, REVIEW 데이터 이관이 완료되었습니다!")
-            print("\n AI 리포트 업데이트가 완료되었습니다!")
-            #print("\n 메뉴 언급 횟수 업데이트가 완료되었습니다!")
+            #print("\n AI 리포트 업데이트가 완료되었습니다!")
+            print("\n 메뉴 언급 횟수 업데이트가 완료되었습니다!")
         except Exception as e:
             print(f"오류 발생: {e}")
         finally:
