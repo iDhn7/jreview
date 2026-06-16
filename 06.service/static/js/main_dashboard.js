@@ -296,13 +296,18 @@ function executeRagQuery(query) {
     }
 
     // 3) 추천 매장 카드 그리드 연동 (상권 및 긍정율 데이터 매핑)
+    // 🚀 [수정 사항]: 클릭 시 상세페이지 전환 함수 'goToDetail'을 호출하고, 창을 닫도록 보완했습니다.
     if (data.recommendations && data.recommendations.length > 0) {
       aiResponseHtml += `
         <div class="rag-recommend-section" style="margin-top: 14px;">
           <div style="font-size: 11px; font-weight: 700; color: var(--primary, #C8530A); margin-bottom: 6px;">✨ 빅데이터 기반 추천 맛집:</div>
           <div class="rec-grid" style="display: flex; flex-direction: column; gap: 6px;">
             ${data.recommendations.map(store => `
-              <div class="rec-store-item" style="background: #fdfaf7; border: 1px solid #fbdcbd; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+              <div class="rec-store-item" 
+                   onclick="closeRagOverlay(); goToDetail('${store.store_code}');" 
+                   style="background: #fdfaf7; border: 1px solid #fbdcbd; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s;"
+                   onmouseover="this.style.background='#fbf1e6'"
+                   onmouseout="this.style.background='#fdfaf7'">
                 <div>
                   <span style="font-weight: 700; font-size: 12px; color: var(--text, #2D3748);">${store.store_name}</span>
                   <span style="font-size: 10px; color: var(--text-3, #718096); margin-left: 4px;">| ${store.category} · ${store.address}</span>
@@ -336,6 +341,10 @@ function executeRagQuery(query) {
 
     // 컴포넌트를 조립한 최종 답변 덩어리를 채팅창에 추가하고 하단 스크롤
     body.innerHTML += aiResponseHtml;
+    body.scrollTop = body.scrollHeight;
+  })
+  .then(() => {
+    // 🚀 스크롤 동작이 유실되는 컴파일 구조를 방지하기 위해 한 번 더 스크롤 높이 세팅 보완
     body.scrollTop = body.scrollHeight;
   })
   .catch(err => {

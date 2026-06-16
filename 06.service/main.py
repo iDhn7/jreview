@@ -46,4 +46,4 @@ app.register_blueprint(rag_bp)
 # [워크플로우 3단계: 애플리케이션 실행]
 if __name__ == "__main__" :
     print("Blueprint 성공 JReview 백엔드 엔진 구동을 시작")
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)

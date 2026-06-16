@@ -8,16 +8,28 @@ rag_bp = Blueprint('rag_view', __name__)
 # 전역 변수로 관리하되, 안전하게 초기화
 rag_manager = None
 
-# 기존 프로젝트 구조와 싱크를 맞춰 RAGManager 임포트 (경로 주의)
+# 기존 프로젝트 구조와 싱크를 맞춰 RAGManager 임포트 및 초기화 시퀀스 실행
 try:
     from modules.RAGManager import RAGManager
     rag_manager = RAGManager()
     
-    # RAG용 벡터 디비 및 분석 DB 커넥션 가동 테스트
-    if not rag_manager.DBOpen():
-        print("⚠️ RAG용 MySQL 연결에 실패했습니다. 벡터 검색 기능이 제한될 수 있습니다.")
+    # 💡 [핵심 추가] RAG 인덱스 자동 로드 및 초기화 시퀀스 작동
+    # 1. 이미 빌드된 파일이 있는지 확인하고 로드 시도
+    if not rag_manager.InitRetriever():
+        print("📦 기구축된 FAISS 인덱스가 없습니다. 최초 1회 실시간 빌드를 시작합니다...")
+        # 2. 파일이 없다면 MySQL REVIEW 테이블을 긁어서 최초 빌드 진행
+        if rag_manager.DBOpen():
+            rag_manager.BuildVectorDB()
+            rag_manager.DBClose()
+        else:
+            print("❌ RAG 초기화 실패: MySQL 데이터베이스 연결을 열 수 없습니다.")
+            
+    # 3. 랭체인 LCEL 대화형 체인(bot_chain) 조립 및 대기 상태 전환
+    rag_manager.CreateConversationalChain()
+    print("✨ [RAG Blueprint] RAG 엔진 및 로컬 검색기가 완벽하게 초기화되었습니다.")
+
 except Exception as e:
-    print(f"❌ RAGManager 모듈 로드 실패: {e}")
+    print(f"❌ RAGManager 모듈 및 컴포넌트 로드 실패: {e}")
     rag_manager = None
 
 
