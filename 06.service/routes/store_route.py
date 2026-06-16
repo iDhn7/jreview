@@ -33,7 +33,7 @@ def get_store_detail():
         db.CloseSQL()
         
     # REVIEW 테이블 조회
-    review_sql = "SELECT CONTENT, REVIEW_PN, PN_SCORE FROM REVIEW WHERE STORE_CODE = %s;"
+    review_sql = "SELECT CONTENT, REVIEW_PN, PN_SCORE, MONTH FROM REVIEW WHERE STORE_CODE = %s;"
     if db.OpenSQL(review_sql, (store_code,)):
         detail_data['reviews'] = db.getAll()
         db.CloseSQL()

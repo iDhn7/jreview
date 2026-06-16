@@ -381,4 +381,130 @@ function renderStoreDetail(data) {
       reportContainer.innerHTML = aiReportHtml;
     }
   }
+  // ==========================================================================
+  // 5. [보강 완료] 월별 방문 추천도 계산 및 가로 막대그래프 렌더링
+  // ==========================================================================
+  const barsContainer = document.getElementById('visitBars');
+  const bestMonthEl = document.getElementById('best-visit-months');
+
+  if (barsContainer && data.reviews) {
+    // 1월부터 12월까지 통계 통 데이터 바구니 초기화
+    const monthlyStats = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      posCount: 0,
+      totalCount: 0
+    }));
+
+    // 데이터 집계 루프
+    data.reviews.forEach(r => {
+      // 🚀 [보강]: 대문자/소문자 키 모두 대응 및 완벽한 정수(Int) 형변환 보장
+      const rawMonth = r.MONTH !== undefined ? r.MONTH : r.month;
+      const m = parseInt(rawMonth, 10);
+      
+      // 🚀 [보강]: 대문자/소문자 PN 상태값 모두 대응
+      const pn = (r.REVIEW_PN || r.review_pn || '').toUpperCase();
+
+      if (m >= 1 && m <= 12) {
+        // P(긍정), N(부정), F(개선) 모두 해당 월의 총 리뷰 수에 포함시킴
+        if (pn === 'P' || pn === 'N' || pn === 'F') {
+          monthlyStats[m - 1].totalCount += 1;
+          if (pn === 'P') {
+            monthlyStats[m - 1].posCount += 1;
+          }
+        }
+      }
+    });
+
+    let htmlContent = '';
+    let bestMonths = [];
+    let maxPosRate = -1;
+
+    // 가로 바 차트용 HTML 빌드
+    monthlyStats.forEach(stat => {
+      const posRate = stat.totalCount > 0 ? Math.round((stat.posCount / stat.totalCount) * 100) : 0;
+      const barColor = stat.totalCount > 0 ? 'var(--primary, #C8530A)' : '#E8DCC8';
+
+      // 최고 긍정율을 기록한 최적 방문 월 추출 (최소 리뷰 1개 이상 기준)
+      if (stat.totalCount > 0) {
+        if (posRate > maxPosRate) {
+          maxPosRate = posRate;
+          bestMonths = [`${stat.month}월`];
+        } else if (posRate === maxPosRate) {
+          bestMonths.push(`${stat.month}월`);
+        }
+      }
+
+      htmlContent += `
+        <div style="display: flex; align-items: center; font-size: 11px; gap: 8px;">
+          <span style="width: 28px; font-weight: 600; color: var(--text-2); text-align: right;">${stat.month}월</span>
+          <div style="flex: 1; background: #E8DCC8; height: 8px; border-radius: 4px; overflow: hidden; position: relative;">
+            <div style="background: ${barColor}; width: ${posRate}%; height: 100%; border-radius: 4px; transition: width 0.6s ease;"></div>
+          </div>
+          <span style="width: 55px; color: var(--text-3); text-align: left;">
+            ${posRate}% (${stat.totalCount}건)
+          </span>
+        </div>
+      `;
+    });
+
+    barsContainer.innerHTML = htmlContent;
+
+    // 상단 대표 최적 방문 가이드 문구 매핑
+    if (bestMonthEl) {
+      if (bestMonths.length > 0 && maxPosRate > 0) {
+        bestMonthEl.textContent = `${bestMonths.join(' · ')} (해당 월 평균 긍정율 ${maxPosRate}%)`;
+      } else {
+        bestMonthEl.textContent = '수집된 월별 데이터가 부족합니다.';
+      }
+    }
+  }
+
+  // ==========================================================================
+  // 6. [보강 완료] 계절별 리뷰 통계 및 긍정률 카드 렌더링
+  // ==========================================================================
+  if (data.reviews) {
+    // 계절별 기본 메타 데이터 구조 정의
+    const seasons = {
+      spring: { name: '봄', months: [3, 4, 5], pos: 0, total: 0, elementId: 'season-spring' },
+      summer: { name: '여름', months: [6, 7, 8], pos: 0, total: 0, elementId: 'season-summer' },
+      autumn: { name: '가을', months: [9, 10, 11], pos: 0, total: 0, elementId: 'season-autumn' },
+      winter: { name: '겨울', months: [12, 1, 2], pos: 0, total: 0, elementId: 'season-winter' }
+    };
+
+    // 리뷰 데이터를 계절별로 매핑 분류
+    data.reviews.forEach(r => {
+      const rawMonth = r.MONTH !== undefined ? r.MONTH : r.month;
+      const m = parseInt(rawMonth, 10);
+      const pn = (r.REVIEW_PN || r.review_pn || '').toUpperCase();
+      
+      if (!m) return;
+
+      for (const key in seasons) {
+        if (seasons[key].months.includes(m)) {
+          if (pn === 'P' || pn === 'N' || pn === 'F') {
+            seasons[key].total += 1;
+            if (pn === 'P') {
+              seasons[key].pos += 1;
+            }
+          }
+          break;
+        }
+      }
+    });
+
+    // view_visit.html 내 정의된 계절별 요소에 데이터 주입
+    for (const key in seasons) {
+      const targetCard = document.getElementById(seasons[key].elementId);
+      if (targetCard) {
+        const s = seasons[key];
+        const rate = s.total > 0 ? Math.round((s.pos / s.total) * 100) : 0;
+        
+        const pctNode = targetCard.querySelector('.pct');
+        const metaNode = targetCard.querySelector('.meta');
+
+        if (pctNode) pctNode.textContent = `${rate}%`;
+        if (metaNode) metaNode.textContent = `긍정 · 리뷰 ${s.total}개`;
+      }
+    }
+  }
 }
