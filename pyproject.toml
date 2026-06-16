@@ -24,4 +24,5 @@ dependencies = [
     "langchain-huggingface>=1.2.2",
     "langchain-community>=0.4.2",
     "faiss-cpu>=1.14.3",
+    "sentence-transformers>=5.5.1",
 ]
