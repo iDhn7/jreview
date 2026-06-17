@@ -71,16 +71,6 @@ function filterCategory(categoryOrArea) {
   // 필터링된 배열을 그리드 렌더러에 그대로 전달 (0개면 없다고 뜨고, 있으면 있는 만큼 뜸)
   currentFilteredBusinesses = filtered;
   handleSort();
-  const countStatus = document.getElementById('filterCountStatus');
-  if (countStatus) {
-    if (categoryOrArea === '전체') {
-      countStatus.textContent = "전체 표시 중";
-    } else if (filtered.length > 0) {
-      countStatus.textContent = `"${categoryOrArea}" 조건 결과 ${filtered.length}개 업체`;
-    } else {
-      countStatus.textContent = `"${categoryOrArea}" 결과 없음`;
-    }
-  }
 }
 
 // 메인 Grid 렌더러 (index_list.html 연동)
@@ -201,12 +191,14 @@ function navSearch(q) {
   // 검색 결과가 0개여도 전체 목록으로 튕기지 않고 빈 배열 그대로 전달
   currentFilteredBusinesses = filtered;
   handleSort();
-  const countStatus = document.getElementById('filterCountStatus');
-  if (countStatus) {
+
+  // 검색 결과 개수를 알려주는 안내 문구 제어
+  const countEl = document.querySelector('.section-header .section-title + div span');
+  if (countEl) {
     if (filtered.length > 0) {
-      countStatus.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
+      countEl.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
     } else {
-      countStatus.textContent = `"${q}"에 대한 검색 결과가 없습니다.`;
+      countEl.textContent = `"${q}"에 대한 검색 결과가 없습니다.`;
     }
   }
 }
