@@ -169,7 +169,14 @@ function closeReviewPopup() {
 /* ===== 우상단 nav 검색 (기존의 단순 프론트 필터링 기능 유지) ===== */
 function navSearch(q) {
   q = (q || '').trim();
-  if (!q) return;
+  if (!q) {
+    currentFilteredBusinesses = [...businesses]; // 전체 데이터로 초기화
+    handleSort(); // 현재 정렬 기준에 맞춰 전체 다시 그리기
+    
+    const countEl = document.querySelector('.section-header .section-title + div span');
+    if (countEl) countEl.textContent = "전체 표시 중";
+    return;
+  }
 
   showPage('main');
 
