@@ -2,6 +2,7 @@
 
 // 카테고리 필터 및 검색 시 사용할 전역 변수 (Flask에서 받아온 데이터로 초기화)
 let businesses = [];
+let currentFilteredBusinesses = []; // 💡 [추가] 현재 필터링/검색되어 화면에 노출 대상인 데이터를 기억하는 배열
 
 document.addEventListener("DOMContentLoaded", function () {
   // 1. Flask가 전달한 데이터를 시스템 포맷에 맞게 매핑
@@ -20,8 +21,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 2. 메인 페이지 초기 화면 그리기
-  const initialShowing = businesses.slice(0, 9);
-  renderBusinessGrid(initialShowing);
+  currentFilteredBusinesses = businesses.slice(0, 9);
+
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) sortSelect.value = 'posRate'; // 기본값 긍정순 설정
+
+  // 정렬을 한 번 실행해서 초기 화면 정렬 렌더링
+  handleSort();
 
   // 3. 메인 페이지 하단 [전주 트렌드 분석] 그래프 그리기 호출
   if (typeof dbTrendArea !== 'undefined') {
@@ -63,7 +69,8 @@ function filterCategory(categoryOrArea) {
   });
 
   // 필터링된 배열을 그리드 렌더러에 그대로 전달 (0개면 없다고 뜨고, 있으면 있는 만큼 뜸)
-  renderBusinessGrid(filtered);
+  currentFilteredBusinesses = filtered;
+  handleSort();
 }
 
 // 메인 Grid 렌더러 (index_list.html 연동)
@@ -175,7 +182,8 @@ function navSearch(q) {
   );
 
   // 검색 결과가 0개여도 전체 목록으로 튕기지 않고 빈 배열 그대로 전달
-  renderBusinessGrid(filtered);
+  currentFilteredBusinesses = filtered;
+  handleSort();
 
   // 검색 결과 개수를 알려주는 안내 문구 제어
   const countEl = document.querySelector('.section-header .section-title + div span');
@@ -186,6 +194,33 @@ function navSearch(q) {
       countEl.textContent = `"${q}"에 대한 검색 결과가 없습니다.`;
     }
   }
+}
+
+// [MAIN PAGE] 실시간 데이터 정렬 시스템 
+function handleSort() {
+  const sortSelect = document.getElementById('sortSelect');
+  if (!sortSelect || !currentFilteredBusinesses || currentFilteredBusinesses.length === 0) {
+    // 데이터가 없으면 정렬하지 않고 0개 화면 출력
+    renderBusinessGrid(currentFilteredBusinesses);
+    return;
+  }
+
+  const sortValue = sortSelect.value; // 'posRate', 'reviews', 'rating'
+
+  // 원본 데이터가 훼손되지 않도록 복사본(...배열)을 만들어 정렬 진행 (내림차순 정렬 b - a)
+  const sortedData = [...currentFilteredBusinesses].sort((a, b) => {
+    if (sortValue === 'posRate') {
+      return b.posRate - a.posRate;  // 긍정 비율 높은 순
+    } else if (sortValue === 'reviews') {
+      return b.reviews - a.reviews;  // 리뷰 많은 순
+    } else if (sortValue === 'rating') {
+      return b.rating - a.rating;    // 별점 높은 순
+    }
+    return 0;
+  });
+
+  // 정렬이 완료된 데이터셋으로 화면 갱신
+  renderBusinessGrid(sortedData);
 }
 
 /* ===== RAG AI 어시스턴트 검색 및 인터랙션 오버레이 활성화 ===== */

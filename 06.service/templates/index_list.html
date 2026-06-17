@@ -22,11 +22,10 @@
           <span class="filter-chip" onclick="setFilter(this,'체험')">🎨 체험</span>
         </div>
         <div style="margin-left: auto; font-size: 12px; color: var(--text-3);">
-          정렬: <select style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer;">
-            <option>긍정 비율순</option>
-            <option>리뷰 많은순</option>
-            <option>최근 갱신순</option>
-          </select>
+          정렬: <select id="sortSelect" onchange="handleSort()" style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer;">
+            <option value="posRate">긍정 비율순</option>
+            <option value="reviews">리뷰 많은순</option>
+            <option value="rating">별점 높은순</option> </select>
         </div>
       </div>
 
