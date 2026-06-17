@@ -1,18 +1,19 @@
 {# 
   파일명: index_list.html
-  설명: 메인페이지 업체목록 블록
+  설명: 메인페이지 업체목록 블록 (제목 표시 및 검색 결과 동적 건수 추가 버전)
 #}
 <div class="business-section">
-      <!-- section-header (업체 목록 등) 숨김 처리 -->
-      <div class="section-header" style="display: none;">
-        <div class="section-title">업체 목록</div>
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div class="section-title" id="listSectionTitle" style="font-size: 18px; font-weight: 700; color: var(--text);">
+           업체 목록
+        </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <span style="font-size: 12px; color: var(--text-3);">총 1,247개 업체</span>
+          <span style="font-size: 13px; color: var(--text-3); font-weight: 500;" id="totalCount">
+          </span>
         </div>
       </div>
 
-      <div class="filter-bar" style="justify-content: flex-end;">
-        <!-- 카테고리 칩 숨김 처리 -->
+      <div class="filter-bar" style="justify-content: flex-end; margin-bottom: 16px;">
         <div style="display: none;">
           <span class="filter-chip active" onclick="setFilter(this,'전체')">전체</span>
           <span class="filter-chip" onclick="setFilter(this,'한식')">🍚 한식</span>
@@ -25,7 +26,8 @@
           정렬: <select id="sortSelect" onchange="handleSort()" style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer;">
             <option value="posRate">긍정 비율순</option>
             <option value="reviews">리뷰 많은순</option>
-            <option value="rating">별점 높은순</option> </select>
+            <option value="rating">별점 높은순</option> 
+          </select>
         </div>
       </div>
 

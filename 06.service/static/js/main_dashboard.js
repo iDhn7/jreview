@@ -60,7 +60,7 @@ function filterCategory(categoryOrArea) {
     
     // 3. 💡 '기타' 카테고리를 누른 경우 처리
     if (categoryOrArea === '기타') {
-      // 업체의 카테고리가 '한식', '일식', '양식', '카페', '중식' 중 그 어느 것도 포함하지 않을 때 true
+      // 업체를 분류할 때 주요 카테고리가 매칭되지 않는 항목들을 걸러냄
       return !mainCategories.some(mainCat => b.category.includes(mainCat));
     } 
     
@@ -68,8 +68,26 @@ function filterCategory(categoryOrArea) {
     return b.category.includes(categoryOrArea);
   });
 
-  // 필터링된 배열을 그리드 렌더러에 그대로 전달 (0개면 없다고 뜨고, 있으면 있는 만큼 뜸)
+  // 필터링된 배열을 기억하고 정렬 기믹 호출
   currentFilteredBusinesses = filtered;
+
+  // 📢 [추가] index_list.html의 제목과 검색 결과 건수를 동적으로 갱신합니다.
+  const titleEl = document.getElementById('listSectionTitle');
+  const countEl = document.getElementById('totalCount');
+  
+  if (titleEl) {
+    if (categoryOrArea === '전체') {
+      titleEl.textContent = '전체 업체 목록';
+    } else {
+      // 상권 키워드인지 카테고리 키워드인지에 따라 조사 분기 세팅
+      const suffix = ['전북대', '신시가지', '객사', '한옥마을'].includes(categoryOrArea) ? ' 상권 분석 결과' : ' 분석 결과';
+      titleEl.textContent = `"${categoryOrArea}"${suffix}`;
+    }
+  }
+  if (countEl) {
+    countEl.textContent = `총 ${filtered.length.toLocaleString()}개 업체`;
+  }
+
   handleSort();
 }
 
@@ -169,12 +187,18 @@ function closeReviewPopup() {
 /* ===== 우상단 nav 검색 (기존의 단순 프론트 필터링 기능 유지) ===== */
 function navSearch(q) {
   q = (q || '').trim();
+  
+  const titleEl = document.getElementById('listSectionTitle');
+  const countEl = document.getElementById('totalCount');
+
   if (!q) {
     currentFilteredBusinesses = [...businesses]; // 전체 데이터로 초기화
-    handleSort(); // 현재 정렬 기준에 맞춰 전체 다시 그리기
     
-    const countEl = document.querySelector('.section-header .section-title + div span');
-    if (countEl) countEl.textContent = "전체 표시 중";
+    // 📢 [추가] 빈 검색어 입력 시 초기 타이틀 상태로 리셋 복구
+    if (titleEl) titleEl.textContent = '전체 업체 목록';
+    if (countEl) countEl.textContent = `총 ${businesses.length.toLocaleString()}개 업체`;
+    
+    handleSort(); // 현재 정렬 기준에 맞춰 전체 다시 그리기
     return;
   }
 
@@ -185,22 +209,25 @@ function navSearch(q) {
     b.name.toLowerCase().includes(ql) ||          // 1. 가게 이름 검색
     b.category.toLowerCase().includes(ql) ||      // 2. 카테고리 검색
     b.location.toLowerCase().includes(ql) ||         // 3. 상권명 검색
-    (b.address && b.address.toLowerCase().includes(ql)) // 4. 주소 검색 (주소가 있을 때만)
+    (b.address && b.address.toLowerCase().includes(ql)) // 4. 주소 검색
   );
 
   // 검색 결과가 0개여도 전체 목록으로 튕기지 않고 빈 배열 그대로 전달
   currentFilteredBusinesses = filtered;
-  handleSort();
 
-  // 검색 결과 개수를 알려주는 안내 문구 제어
-  const countEl = document.querySelector('.section-header .section-title + div span');
+  // 📢 [추가/수정] 검색 단어 유입 시 index_list.html 헤더 문자열 연동 제어
+  if (titleEl) {
+    titleEl.textContent = `"${q}" 검색 결과`;
+  }
   if (countEl) {
     if (filtered.length > 0) {
-      countEl.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
+      countEl.textContent = `총 ${filtered.length.toLocaleString()}개 업체 조회`;
     } else {
-      countEl.textContent = `"${q}"에 대한 검색 결과가 없습니다.`;
+      countEl.textContent = '검색 결과 없음';
     }
   }
+
+  handleSort();
 }
 
 // [MAIN PAGE] 실시간 데이터 정렬 시스템 
