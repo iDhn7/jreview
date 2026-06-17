@@ -177,12 +177,17 @@ function navSearch(q) {
  */
 function ragSearch() {
   const input = document.getElementById('ragInput');
-  if (!input || !input.value.trim()) return;
+  if (!input) return;
 
-  const query = input.value.trim();
-  input.value = ''; // 다음 입력을 위해 메인 입력창 초기화
+  // 입력값이 있으면 그 값을 쓰고, 없으면 기본 디폴트 문구
+  let query = input.value.trim();
+  if (!query) {
+    query = "전주 맛집 추천해줘"; // 기본 질문 입력
+  }
 
-  // 🚀 핵심: 오버레이 창을 열면서 사용자가 입력한 검색 질의를 비동기 실행 파이프라인으로 토스
+  input.value = ''; // 메인 입력창 초기화
+
+  // 오버레이 창을 열면서 질문 전달
   openRagOverlay(query);
 }
 
