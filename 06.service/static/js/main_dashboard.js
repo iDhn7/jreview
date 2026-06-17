@@ -7,19 +7,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // 1. Flask가 전달한 데이터를 시스템 포맷에 맞게 매핑
   if (typeof dbBusinesses !== 'undefined') {
     businesses = dbBusinesses.map(b => ({
-      id: b.STORE_CODE,
-      name: b.STORE_NAME,
-      category: b.CATEGORY,
-      location: b.AREA, // '전북대', '신시가지', '객사', '한옥마을' 등 상권 정보
-      rating: b.STAR || 0,
-      reviews: b.REVIEW_CNT || 0,
-      imageUrl: b.STORE_IMAGE_URL || '/static/img/default.jpg',
-      posRate: b.PN_RATE || 0
+      id: b.id,                 // 백엔드의 "id": biz.get('STORE_CODE') 와 매핑
+      name: b.name,             // 백엔드의 "name": biz.get('STORE_NAME') 와 매핑
+      category: b.category,     // 백엔드의 "category" 와 매핑
+      location: b.location,     // 백엔드의 "location": biz.get('AREA') 와 매핑
+      address: b.address || '', // 백엔드의 "address": biz.get('ADDRESS_DO') 와 매핑
+      rating: b.rating || 0,    // 백엔드의 "rating" 와 매핑
+      reviews: b.reviews || 0,  // 백엔드의 "reviews" 와 매핑
+      imageUrl: b.image_url || '/static/img/default.jpg', // 백엔드의 "image_url" 와 매핑
+      posRate: b.pos || 0       // 백엔드의 "pos" 와 매핑
     }));
   }
 
   // 2. 메인 페이지 초기 화면 그리기
-  renderBusinessGrid(businesses);
+  const initialShowing = businesses.slice(0, 9);
+  renderBusinessGrid(initialShowing);
 
   // 3. 메인 페이지 하단 [전주 트렌드 분석] 그래프 그리기 호출
   if (typeof dbTrendArea !== 'undefined') {
@@ -38,18 +40,30 @@ function filterCategory(categoryOrArea) {
   // 활성화된 칩 스타일 초기화 처리
   document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
   
+  // 💡 기타 카테고리를 판별하기 위한 기준 정의 (나머지 주요 카테고리 목록)
+  const mainCategories = ['한식', '일식', '양식', '카페', '중식'];
+
   const filtered = businesses.filter(b => {
+    // 1. '전체'를 누른 경우 모두 반환
     if (categoryOrArea === '전체') return true;
     
-    // 위치(상권) 또는 음식 카테고리에 매칭되는지 검사
+    // 2. 위치(상권) 필터링
     if (['전북대', '신시가지', '객사', '한옥마을'].includes(categoryOrArea)) {
-      return b.location === categoryOrArea; // 상권 필터링
-    } else {
-      return b.category.includes(categoryOrArea); // 음식 카테고리 필터링
-    }
+      return b.location === categoryOrArea;
+    } 
+    
+    // 3. 💡 '기타' 카테고리를 누른 경우 처리
+    if (categoryOrArea === '기타') {
+      // 업체의 카테고리가 '한식', '일식', '양식', '카페', '중식' 중 그 어느 것도 포함하지 않을 때 true
+      return !mainCategories.some(mainCat => b.category.includes(mainCat));
+    } 
+    
+    // 4. 일반 음식 카테고리 필터링 (한식, 일식, 양식, 카페, 중식)
+    return b.category.includes(categoryOrArea);
   });
 
-  renderBusinessGrid(filtered.length ? filtered : businesses);
+  // 필터링된 배열을 그리드 렌더러에 그대로 전달 (0개면 없다고 뜨고, 있으면 있는 만큼 뜸)
+  renderBusinessGrid(filtered);
 }
 
 // 메인 Grid 렌더러 (index_list.html 연동)
@@ -154,19 +168,22 @@ function navSearch(q) {
 
   const ql = q.toLowerCase();
   const filtered = businesses.filter(b =>
-    b.name.includes(q) ||
-    b.category.toLowerCase().includes(ql) ||
-    b.location.includes(q)
+    b.name.toLowerCase().includes(ql) ||          // 1. 가게 이름 검색
+    b.category.toLowerCase().includes(ql) ||      // 2. 카테고리 검색
+    b.location.toLowerCase().includes(ql) ||         // 3. 상권명 검색
+    (b.address && b.address.toLowerCase().includes(ql)) // 4. 주소 검색 (주소가 있을 때만)
   );
 
-  renderBusinessGrid(filtered.length ? filtered : businesses);
+  // 검색 결과가 0개여도 전체 목록으로 튕기지 않고 빈 배열 그대로 전달
+  renderBusinessGrid(filtered);
 
+  // 검색 결과 개수를 알려주는 안내 문구 제어
   const countEl = document.querySelector('.section-header .section-title + div span');
   if (countEl) {
-    if (filtered.length) {
+    if (filtered.length > 0) {
       countEl.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
     } else {
-      countEl.textContent = `"${q}" 결과 없음 — 전체 표시 중`;
+      countEl.textContent = `"${q}"에 대한 검색 결과가 없습니다.`;
     }
   }
 }

@@ -29,7 +29,7 @@ def index():
         db.CloseSQL()
 
     # 2. ★ 파이썬에서 리스트를 9개까지만 자르기 (추가된 코드) ★
-    businesses = businesses[:9]
+    #businesses = businesses[:9]
     # 프론트엔드로 전달할 최종 데이터를 담을 리스트
     formatted_businesses = []
      
@@ -59,7 +59,8 @@ def index():
             "name": biz.get('STORE_NAME'),
             "icon": icon,
             "category": category,
-            "location": biz.get('ADDRESS_DO'), 
+            "location": biz.get('AREA'),
+            "address": biz.get('ADDRESS_DO'), 
             "reviews": biz.get('REVIEW_CNT', 0), # 서브쿼리로 가져온 리뷰 수
             "rating": biz.get('STAR', 0.0),      # DB 스키마의 FLOAT 타입 유지
             "pos": pos_val,
@@ -158,7 +159,7 @@ def index():
 
     return render_template(
         "index.html", 
-        businesses=businesses, 
+        businesses=formatted_businesses, 
         trend_area=trend_area, 
         trend_season=fixed_trend_season,
        # trend_season=trend_season, 
