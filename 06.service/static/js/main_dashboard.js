@@ -2,24 +2,32 @@
 
 // 카테고리 필터 및 검색 시 사용할 전역 변수 (Flask에서 받아온 데이터로 초기화)
 let businesses = [];
+let currentFilteredBusinesses = []; // 💡 [추가] 현재 필터링/검색되어 화면에 노출 대상인 데이터를 기억하는 배열
 
 document.addEventListener("DOMContentLoaded", function () {
   // 1. Flask가 전달한 데이터를 시스템 포맷에 맞게 매핑
   if (typeof dbBusinesses !== 'undefined') {
     businesses = dbBusinesses.map(b => ({
-      id: b.STORE_CODE,
-      name: b.STORE_NAME,
-      category: b.CATEGORY,
-      location: b.AREA, // '전북대', '신시가지', '객사', '한옥마을' 등 상권 정보
-      rating: b.STAR || 0,
-      reviews: b.REVIEW_CNT || 0,
-      imageUrl: b.STORE_IMAGE_URL || '/static/img/default.jpg',
-      posRate: b.PN_RATE || 0
+      id: b.id,                 // 백엔드의 "id": biz.get('STORE_CODE') 와 매핑
+      name: b.name,             // 백엔드의 "name": biz.get('STORE_NAME') 와 매핑
+      category: b.category,     // 백엔드의 "category" 와 매핑
+      location: b.location,     // 백엔드의 "location": biz.get('AREA') 와 매핑
+      address: b.address || '', // 백엔드의 "address": biz.get('ADDRESS_DO') 와 매핑
+      rating: b.rating || 0,    // 백엔드의 "rating" 와 매핑
+      reviews: b.reviews || 0,  // 백엔드의 "reviews" 와 매핑
+      imageUrl: b.image_url || '/static/img/default.jpg', // 백엔드의 "image_url" 와 매핑
+      posRate: b.pos || 0       // 백엔드의 "pos" 와 매핑
     }));
   }
 
   // 2. 메인 페이지 초기 화면 그리기
-  renderBusinessGrid(businesses);
+  currentFilteredBusinesses = businesses.slice(0, 9);
+
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) sortSelect.value = 'posRate'; // 기본값 긍정순 설정
+
+  // 정렬을 한 번 실행해서 초기 화면 정렬 렌더링
+  handleSort();
 
   // 3. 메인 페이지 하단 [전주 트렌드 분석] 그래프 그리기 호출
   if (typeof dbTrendArea !== 'undefined') {
@@ -38,18 +46,41 @@ function filterCategory(categoryOrArea) {
   // 활성화된 칩 스타일 초기화 처리
   document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
   
+  // 💡 기타 카테고리를 판별하기 위한 기준 정의 (나머지 주요 카테고리 목록)
+  const mainCategories = ['한식', '일식', '양식', '카페', '중식'];
+
   const filtered = businesses.filter(b => {
+    // 1. '전체'를 누른 경우 모두 반환
     if (categoryOrArea === '전체') return true;
     
-    // 위치(상권) 또는 음식 카테고리에 매칭되는지 검사
+    // 2. 위치(상권) 필터링
     if (['전북대', '신시가지', '객사', '한옥마을'].includes(categoryOrArea)) {
-      return b.location === categoryOrArea; // 상권 필터링
-    } else {
-      return b.category.includes(categoryOrArea); // 음식 카테고리 필터링
-    }
+      return b.location === categoryOrArea;
+    } 
+    
+    // 3. 💡 '기타' 카테고리를 누른 경우 처리
+    if (categoryOrArea === '기타') {
+      // 업체의 카테고리가 '한식', '일식', '양식', '카페', '중식' 중 그 어느 것도 포함하지 않을 때 true
+      return !mainCategories.some(mainCat => b.category.includes(mainCat));
+    } 
+    
+    // 4. 일반 음식 카테고리 필터링 (한식, 일식, 양식, 카페, 중식)
+    return b.category.includes(categoryOrArea);
   });
 
-  renderBusinessGrid(filtered.length ? filtered : businesses);
+  // 필터링된 배열을 그리드 렌더러에 그대로 전달 (0개면 없다고 뜨고, 있으면 있는 만큼 뜸)
+  currentFilteredBusinesses = filtered;
+  handleSort();
+  const countStatus = document.getElementById('filterCountStatus');
+  if (countStatus) {
+    if (categoryOrArea === '전체') {
+      countStatus.textContent = "전체 표시 중";
+    } else if (filtered.length > 0) {
+      countStatus.textContent = `"${categoryOrArea}" 조건 결과 ${filtered.length}개 업체`;
+    } else {
+      countStatus.textContent = `"${categoryOrArea}" 결과 없음`;
+    }
+  }
 }
 
 // 메인 Grid 렌더러 (index_list.html 연동)
@@ -148,27 +179,63 @@ function closeReviewPopup() {
 /* ===== 우상단 nav 검색 (기존의 단순 프론트 필터링 기능 유지) ===== */
 function navSearch(q) {
   q = (q || '').trim();
-  if (!q) return;
+  if (!q) {
+    currentFilteredBusinesses = [...businesses]; // 전체 데이터로 초기화
+    handleSort(); // 현재 정렬 기준에 맞춰 전체 다시 그리기
+    
+    const countEl = document.querySelector('.section-header .section-title + div span');
+    if (countEl) countEl.textContent = "전체 표시 중";
+    return;
+  }
 
   showPage('main');
 
   const ql = q.toLowerCase();
   const filtered = businesses.filter(b =>
-    b.name.includes(q) ||
-    b.category.toLowerCase().includes(ql) ||
-    b.location.includes(q)
+    b.name.toLowerCase().includes(ql) ||          // 1. 가게 이름 검색
+    b.category.toLowerCase().includes(ql) ||      // 2. 카테고리 검색
+    b.location.toLowerCase().includes(ql) ||         // 3. 상권명 검색
+    (b.address && b.address.toLowerCase().includes(ql)) // 4. 주소 검색 (주소가 있을 때만)
   );
 
-  renderBusinessGrid(filtered.length ? filtered : businesses);
-
-  const countEl = document.querySelector('.section-header .section-title + div span');
-  if (countEl) {
-    if (filtered.length) {
-      countEl.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
+  // 검색 결과가 0개여도 전체 목록으로 튕기지 않고 빈 배열 그대로 전달
+  currentFilteredBusinesses = filtered;
+  handleSort();
+  const countStatus = document.getElementById('filterCountStatus');
+  if (countStatus) {
+    if (filtered.length > 0) {
+      countStatus.textContent = `"${q}" 검색결과 ${filtered.length}개 업체`;
     } else {
-      countEl.textContent = `"${q}" 결과 없음 — 전체 표시 중`;
+      countStatus.textContent = `"${q}"에 대한 검색 결과가 없습니다.`;
     }
   }
+}
+
+// [MAIN PAGE] 실시간 데이터 정렬 시스템 
+function handleSort() {
+  const sortSelect = document.getElementById('sortSelect');
+  if (!sortSelect || !currentFilteredBusinesses || currentFilteredBusinesses.length === 0) {
+    // 데이터가 없으면 정렬하지 않고 0개 화면 출력
+    renderBusinessGrid(currentFilteredBusinesses);
+    return;
+  }
+
+  const sortValue = sortSelect.value; // 'posRate', 'reviews', 'rating'
+
+  // 원본 데이터가 훼손되지 않도록 복사본(...배열)을 만들어 정렬 진행 (내림차순 정렬 b - a)
+  const sortedData = [...currentFilteredBusinesses].sort((a, b) => {
+    if (sortValue === 'posRate') {
+      return b.posRate - a.posRate;  // 긍정 비율 높은 순
+    } else if (sortValue === 'reviews') {
+      return b.reviews - a.reviews;  // 리뷰 많은 순
+    } else if (sortValue === 'rating') {
+      return b.rating - a.rating;    // 별점 높은 순
+    }
+    return 0;
+  });
+
+  // 정렬이 완료된 데이터셋으로 화면 갱신
+  renderBusinessGrid(sortedData);
 }
 
 /* ===== RAG AI 어시스턴트 검색 및 인터랙션 오버레이 활성화 ===== */

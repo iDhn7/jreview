@@ -1,120 +1,125 @@
 {# 
   파일명: index_trend.html
-  설명: 메인페이지 트렌드 분석 블록
+  설명: 메인페이지 트렌드 분석 블록 (소제목 및 레이아웃 가독성 보완)
 #}
-<div style="display: flex; gap: 12px; margin-bottom: 20px; font-size: 11px; color: var(--text-2);">
-  <span style="display:flex; align-items:center; gap:4px;">
-    <span style="width:8px; height:8px; border-radius:50%; background: var(--pos); display:inline-block;"></span>긍정 비율
-  </span>
-  <span style="display:flex; align-items:center; gap:4px;">
-    <span style="width:8px; height:8px; border-radius:50%; background: var(--neg); display:inline-block;"></span>부정 비율
-  </span>
-</div>
 
-<div style="display: flex; flex-direction: column; gap: 16px;">
-  {% if trend_area %}
-    {% for area in trend_area %}
-    <div class="region-row">
-      <span class="region-name">{{ area.AREA }}</span>
-      <div class="region-bar-wrap">
-          <div class="region-bar-pos" style="width: {{ area['AVG_PN_RATE'] | default(0, true) }}%; background-color: #4CAF50;"></div>
-          <div class="region-bar-neg" style="width: {{ area['AVG_NN_RATE'] | default(0, true) }}%; background-color: #f44336;"></div>
-      </div>
-      <span class="region-pct-pos">{{ area['AVG_PN_RATE'] | default(0, true) }}%</span>
-    </div>
-    {% endfor %}
-  {% else %}
-    <div style="text-align: center; color: var(--text-3); font-size: 12px; padding: 20px 0;">통계 데이터가 존재하지 않습니다.</div>
-  {% endif %}
-</div>
-
-
-<div style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px;">
-  {% if trend_season %}
-    {% for group in trend_season|groupby('AREA') %}
-      <div style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 4px;">
-        <div style="font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--primary-dark); display: flex; align-items: center; gap: 6px;">
-          <span style="font-size: 14px;">📍</span> {{ group.grouper }} 상권
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
-          {% for season in group.list %}
-            <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 4px; text-align: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: var(--shadow);">
-              <div style="font-size: 16px; margin-bottom: 4px;">
-                {% if '봄' in season.SEASON %}🌸{% elif '여름' in season.SEASON %}☀️{% elif '가을' in season.SEASON %}🍂{% else %}❄️{% endif %}
-              </div>
-              <div style="font-size: 11px; color: var(--text-2); font-weight: 500;">{{ season.SEASON.split(' ')[0] }}</div>
-              <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 2px;">{{ season.TOTAL_REVIEWS }}건</div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <div style="text-align: center; color: var(--text-3); font-size: 12px; padding: 20px 0;">계절별 데이터가 존재하지 않습니다.</div>
-  {% endif %}
-</div>
-
-<div class="trend-chart-container" style="margin-top: 16px;">
-  {% if trend_recent %}
-    {# 1. 색상 배열 (기존 CSS에 있던 색상 코드 사용) #}
-    {% set colors = ['#FF9F40', '#FFCD56', '#4BC0C0', '#36A2EB'] %}
-    
-    {# 2. conic-gradient 동적 생성 #}
-    {% set ns = namespace(current_pct=0, gradient_str='') %}
-    {% for recent in trend_recent %}
-      {% set ratio = recent.RATIO | float %}
-      {% set next_pct = ns.current_pct + ratio %}
-      {% set comma = ', ' if not loop.first else '' %}
-      
-      {% set ns.gradient_str = ns.gradient_str ~ comma ~ colors[loop.index0 % 4] ~ ' ' ~ ns.current_pct ~ '% ' ~ next_pct ~ '%' %}
-      {% set ns.current_pct = next_pct %}
-    {% endfor %}
-
-    {# 3. 원형 그래프 렌더링 (텍스트는 위 CSS의 ::after에서 처리함) #}
-    <div id="trendRecentPieChart" class="pie-chart" style="background: conic-gradient({{ ns.gradient_str }});">
-    </div>
-    
-    {# 4. 범례 렌더링 #}
-    <div class="chart-legend">
-      {% for recent in trend_recent %}
-      <div class="legend-item" style="margin-bottom: 6px;">
-        <div class="legend-color" style="background: {{ colors[loop.index0 % 4] }};"></div>
-        <span style="font-weight: 500;">{{ recent.AREA }}</span>
-        <span class="legend-percent">{{ recent.RATIO }}%</span>
-        <span style="font-size: 10px; color: var(--text-3, #888); margin-left: 4px;">({{ recent.RECENT_REVIEW_CNT }}건)</span>
-      </div>
-      {% endfor %}
-    </div>
-    
-  {% else %}
-    {# 데이터가 없을 때 #}
-    <div id="trendRecentPieChart" class="pie-chart" style="background: #f0f0f0;"></div>
-    <div class="chart-legend">
-      <div style="font-size: 12px; color: var(--text-3, #888);">통계가 없습니다.</div>
-    </div>
-  {% endif %}
-</div>
-
-<!-- <div class="trend-chart-container" style="margin-top: 16px;">
-  <div id="trendRecentPieChart" class="pie-chart" style="display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: var(--text-2);">
-    점유율
+<div style="margin-bottom: 24px;">
+  <div style="font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    <span style="color: #4CAF50;">📊</span> 상권별 긍·부정 만족도 리포트
+  </div>
+  <div style="font-size: 11px; color: var(--text-3); margin-bottom: 12px; line-height: 1.4;">
+    리뷰 텍스트 감성 분석을 기반으로 산출한 상권별 종합 만족도 비율입니다.
   </div>
   
-  <div class="chart-legend">
-    {% if trend_recent %}
-      {% set colors = ['var(--primary)', 'var(--accent)', 'var(--text-2)', 'var(--border-2)'] %}
-      {% for recent in trend_recent %}
-      <div class="legend-item" style="margin-bottom: 6px;">
-        <div class="legend-color" style="background: {{ colors[loop.index0 % 4] }};"></div>
-        <span style="font-weight: 500;">{{ recent.AREA }}</span>
-        <span class="legend-percent">{{ recent.RATIO }}%</span>
-        <span style="font-size: 10px; color: var(--text-3); margin-left: 4px;">({{ recent.RECENT_REVIEW_CNT }}건)</span>
+  <div style="display: flex; gap: 12px; margin-bottom: 14px; font-size: 11px; color: var(--text-2);">
+    <span style="display:flex; align-items:center; gap:4px;">
+      <span style="width:8px; height:8px; border-radius:50%; background: #4CAF50; display:inline-block;"></span>긍정 비율
+    </span>
+    <span style="display:flex; align-items:center; gap:4px;">
+      <span style="width:8px; height:8px; border-radius:50%; background: #f44336; display:inline-block;"></span>부정 비율
+    </span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    {% if trend_area %}
+      {% for area in trend_area %}
+      <div class="region-row">
+        <span class="region-name">{{ area.AREA }}</span>
+        <div class="region-bar-wrap">
+            <div class="region-bar-pos" style="width: {{ area['AVG_PN_RATE'] | default(0, true) }}%; background-color: #4CAF50;"></div>
+            <div class="region-bar-neg" style="width: {{ area['AVG_NN_RATE'] | default(0, true) }}%; background-color: #f44336;"></div>
+        </div>
+        <span class="region-pct-pos">{{ area['AVG_PN_RATE'] | default(0, true) }}%</span>
       </div>
       {% endfor %}
     {% else %}
-      <div style="font-size: 12px; color: var(--text-3);">통계가 없습니다.</div>
+      <div style="text-align: center; color: var(--text-3); font-size: 12px; padding: 20px 0;">통계 데이터가 존재하지 않습니다.</div>
     {% endif %}
   </div>
-</div> -->
+</div>
 
- 
+
+<div style="margin-top: 28px; margin-bottom: 24px; border-top: 1px dashed var(--border); padding-top: 20px;">
+  <div style="font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    <span>📅</span> 상권별 계절별 리뷰 소비 추이
+  </div>
+  <div style="font-size: 11px; color: var(--text-3); margin-bottom: 16px; line-height: 1.4;">
+    각 상권의 계절별 누적 리뷰 작성 건수를 통해 시기별 활성화 정도를 비교합니다.
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    {% if trend_season %}
+      {% for group in trend_season|groupby('AREA') %}
+        <div style="border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 4px;">
+          <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--primary-dark); display: flex; align-items: center; gap: 4px;">
+            <span style="font-size: 12px;">📍</span> {{ group.grouper }} 상권
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            {% for season in group.list %}
+              <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 4px; text-align: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: var(--shadow);">
+                <div style="font-size: 16px; margin-bottom: 4px;">
+                  {% if '봄' in season.SEASON %}🌸{% elif '여름' in season.SEASON %}☀️{% elif '가을' in season.SEASON %}🍂{% else %}❄️{% endif %}
+                </div>
+                <div style="font-size: 11px; color: var(--text-2); font-weight: 500;">{{ season.SEASON.split(' ')[0] }}</div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 2px;">{{ season.TOTAL_REVIEWS }}건</div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align: center; color: var(--text-3); font-size: 12px; padding: 20px 0;">계절별 데이터가 존재하지 않습니다.</div>
+    {% endif %}
+  </div>
+</div>
+
+
+<div style="margin-top: 28px; border-top: 1px dashed var(--border); padding-top: 20px;">
+  <div style="font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+    <span>🔥</span> 최근 30일간 상권별 실시간 점유율
+  </div>
+  <div style="font-size: 11px; color: var(--text-3); margin-bottom: 16px; line-height: 1.4;">
+    최근 30일 내 등록된 신규 리뷰의 분포 비율로 현재 가장 핫한 상권을 분석합니다.
+  </div>
+
+  <div class="trend-chart-container">
+    {% if trend_recent %}
+      {# 1. 색상 배열 #}
+      {% set colors = ['#FF9F40', '#FFCD56', '#4BC0C0', '#36A2EB'] %}
+      
+      {# 2. conic-gradient 동적 생성 #}
+      {% set ns = namespace(current_pct=0, gradient_str='') %}
+      {% for recent in trend_recent %}
+        {% set ratio = recent.RATIO | float %}
+        {% set next_pct = ns.current_pct + ratio %}
+        {% set comma = ', ' if not loop.first else '' %}
+        
+        {% set ns.gradient_str = ns.gradient_str ~ comma ~ colors[loop.index0 % 4] ~ ' ' ~ ns.current_pct ~ '% ' ~ next_pct ~ '%' %}
+        {% set ns.current_pct = next_pct %}
+      {% endfor %}
+
+      {# 3. 원형 그래프 렌더링 #}
+      <div id="trendRecentPieChart" class="pie-chart" style="background: conic-gradient({{ ns.gradient_str }});">
+      </div>
+      
+      {# 4. 범례 렌더링 #}
+      <div class="chart-legend">
+        {% for recent in trend_recent %}
+        <div class="legend-item" style="margin-bottom: 6px;">
+          <div class="legend-color" style="background: {{ colors[loop.index0 % 4] }};"></div>
+          <span style="font-weight: 500;">{{ recent.AREA }}</span>
+          <span class="legend-percent">{{ recent.RATIO }}%</span>
+          <span style="font-size: 10px; color: var(--text-3, #888); margin-left: 4px;">({{ recent.RECENT_REVIEW_CNT }}건)</span>
+        </div>
+        {% endfor %}
+      </div>
+      
+    {% else %}
+      {# 데이터가 없을 때 #}
+      <div id="trendRecentPieChart" class="pie-chart" style="background: #f0f0f0;"></div>
+      <div class="chart-legend">
+        <div style="font-size: 12px; color: var(--text-3, #888);">통계가 없습니다.</div>
+      </div>
+    {% endif %}
+  </div>
+</div>

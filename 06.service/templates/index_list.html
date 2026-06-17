@@ -1,34 +1,46 @@
 {# 
   파일명: index_list.html
-  설명: 메인페이지 업체목록 블록
+  설명: 레이아웃 짤림 해결 및 텍스트 갱신용 ID 부여
 #}
-<div class="business-section">
-      <!-- section-header (업체 목록 등) 숨김 처리 -->
-      <div class="section-header" style="display: none;">
-        <div class="section-title">업체 목록</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <span style="font-size: 12px; color: var(--text-3);">총 1,247개 업체</span>
-        </div>
+<div class="business-section" style="margin-top: 12px;">
+  
+  <div class="section-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;">
+    
+    <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+      <div class="section-title" style="font-size: 18px; font-weight: 700; color: var(--text-1); display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+        <span></span> 맞춤형 지역 업체 리스트
       </div>
-
-      <div class="filter-bar" style="justify-content: flex-end;">
-        <!-- 카테고리 칩 숨김 처리 -->
-        <div style="display: none;">
-          <span class="filter-chip active" onclick="setFilter(this,'전체')">전체</span>
-          <span class="filter-chip" onclick="setFilter(this,'한식')">🍚 한식</span>
-          <span class="filter-chip" onclick="setFilter(this,'카페')">☕ 카페</span>
-          <span class="filter-chip" onclick="setFilter(this,'숙박')">🛏 숙박</span>
-          <span class="filter-chip" onclick="setFilter(this,'관광지')">🏯 관광지</span>
-          <span class="filter-chip" onclick="setFilter(this,'체험')">🎨 체험</span>
-        </div>
-        <div style="margin-left: auto; font-size: 12px; color: var(--text-3);">
-          정렬: <select style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer;">
-            <option>긍정 비율순</option>
-            <option>리뷰 많은순</option>
-            <option>최근 갱신순</option>
-          </select>
-        </div>
+      <div style="font-size: 11px; color: var(--text-3); line-height: 1.4;">
+        선택한 카테고리 및 상권 조건에 맞는 업체를 실시간으로 확인할 수 있습니다.
       </div>
-
-      <div class="business-grid" id="businessGrid"></div>
     </div>
+
+    <div style="font-size: 11px; color: var(--text-3); font-weight: 500; white-space: nowrap; padding-bottom: 2px;">
+      <span id="filterCountStatus">전체 표시 중</span>
+    </div>
+    
+  </div>
+
+  <div class="filter-bar" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+    <div style="display: none;">
+      <span class="filter-chip active" onclick="setFilter(this,'전체')">전체</span>
+      <span class="filter-chip" onclick="setFilter(this,'한식')">🍚 한식</span>
+      <span class="filter-chip" onclick="setFilter(this,'카페')">☕ 카페</span>
+      <span class="filter-chip" onclick="setFilter(this,'숙박')">🛏 숙박</span>
+      <span class="filter-chip" onclick="setFilter(this,'관광지')">🏯 관광지</span>
+      <span class="filter-chip" onclick="setFilter(this,'체험')">🎨 체험</span>
+    </div>
+    
+    <div style="font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 4px;">
+      <span>정렬:</span>
+      <select id="sortSelect" onchange="handleSort()" style="border: none; background: none; font-size: 12px; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer; font-weight: 500; padding-right: 4px;">
+        <option value="posRate">긍정 비율순</option>
+        <option value="reviews">리뷰 많은순</option>
+        <option value="rating">별점 높은순</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="business-grid" id="businessGrid"></div>
+
+</div>
