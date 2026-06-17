@@ -32,6 +32,8 @@ db.DBOpen(
 )
 print(os.getenv("host"), os.getenv("user"), os.getenv("passwd"), os.getenv("dbname"))
 
+app.config['KAKAO_API_KEY'] = os.getenv("KAKAO_API_KEY")
+
 # 블루프린트 임포트 및 등록 조립 구역
 # db 객체가 먼저 메모리에 바인딩된 후 하위 라우터를 import해야 순서 에러가 안 납니다
 from routes.main_route import main_bp

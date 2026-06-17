@@ -1,5 +1,5 @@
 # 📝 routes/store_route.py
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 
 # 'store_view'라는 이름의 상세 페이지 하위 청사진 설계도를 선언합니다.
 store_bp = Blueprint('store_view', __name__)
@@ -81,4 +81,6 @@ def get_store_detail():
         ]
         db.CloseSQL()
 
+    #detail_data['KAKAO_API_KEY'] = current_app.config.get('KAKAO_API_KEY')
+    
     return jsonify(detail_data)
