@@ -105,11 +105,11 @@ function renderBusinessGrid(dataList) {
     <div class="business-card" onclick="goToDetail('${b.id}')">
       <div class="b-img-wrap">
         <img class="b-img" src="${b.imageUrl}" alt="${b.name}">
-        <span class="b-category-badge">${b.category}</span>
+        <span class="b-name" style="font-weight: 700; color: var(--text-1); font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">${b.name}</span>
       </div>
       <div class="b-info">
         <div class="b-name-row">
-          <span class="b-name">${b.name}</span>
+          <span class="b-category-badge">✨${b.category}</span>
           <span class="b-rating">★ ${Number(b.rating).toFixed(1)}</span>
         </div>
         <div class="b-meta">
@@ -121,8 +121,8 @@ function renderBusinessGrid(dataList) {
           <div class="b-sentiment-bar" style="width: ${b.posRate}%"></div>
         </div>
         <div class="b-sentiment-labels">
-          <span class="pos-lbl">긍정 ${b.posRate}%</span>
-          <span class="neg-lbl">부정 ${100 - b.posRate}%</span>
+          <span class="pos-lbl">😊 긍정 ${b.posRate}%</span>
+          <span class="neg-lbl">😞 부정 ${100 - b.posRate}%</span>
         </div>
       </div>
     </div>
