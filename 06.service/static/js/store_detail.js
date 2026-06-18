@@ -101,7 +101,7 @@ function renderStoreDetail(data) {
         amenityBox.innerHTML = "";
         const amenityStr = s.AMENITY || s.amenity;
         if (amenityStr) {
-            const amenityArray = amenityStr.split(',');
+            const amenityArray = amenityStr.split('_');
             amenityArray.forEach(item => {
                 const trimmed = item.trim();
                 if (trimmed) {

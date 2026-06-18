@@ -3,6 +3,27 @@
 // 카테고리 필터 및 검색 시 사용할 전역 변수 (Flask에서 받아온 데이터로 초기화)
 let businesses = [];
 let currentFilteredBusinesses = []; // 💡 [추가] 현재 필터링/검색되어 화면에 노출 대상인 데이터를 기억하는 배열
+let currentIndex = 6; // 초기에 보여줄 데이터 개수 (0번부터 6번 직전까지)
+const perPage = 9;    // 더보기 클릭 시 추가할 개수
+
+function handleLoadMore() {
+  currentIndex += perPage; // 보여줄 개수를 9개 증가시킴
+  handleSort();            // 늘어난 개수를 기준으로 정렬 재수행 및 렌더링
+}
+function onSortChange() {
+  currentIndex = 6;        // 정렬 기준을 바꾸면 다시 처음 6개부터 보여줌 (UX 권장사항)
+  handleSort();
+}
+function toggleMoreButton(totalLength) {
+  const moreButton = document.getElementById('moreBtn');
+  if (!moreButton) return;
+
+  if (currentIndex >= totalLength) {
+    moreButton.style.display = 'none';  // 더 이상 보여줄 맛집이 없으면 버튼 숨김
+  } else {
+    moreButton.style.display = 'block'; // 남아있으면 버튼 노출
+  }
+}
 
 document.addEventListener("DOMContentLoaded", function () {
   // 1. Flask가 전달한 데이터를 시스템 포맷에 맞게 매핑
@@ -21,13 +42,30 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 2. 메인 페이지 초기 화면 그리기
-  currentFilteredBusinesses = businesses.slice(0, 9);
+  function initPage() {
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.value = 'posRate'; // 기본값 긍정순 설정
+  }
+  
+  // 최초 정렬 및 렌더링 실행
+  handleSort();
+}
 
   const sortSelect = document.getElementById('sortSelect');
   if (sortSelect) sortSelect.value = 'posRate'; // 기본값 긍정순 설정
 
   // 정렬을 한 번 실행해서 초기 화면 정렬 렌더링
   handleSort();
+
+  const moreButton = document.getElementById('moreBtn'); // 더보기 버튼 ID
+  if (currentIndex >= businesses.length) {
+    moreButton.style.display = 'none'; // 데이터가 끝났으면 버튼 숨김
+  } else {
+    moreButton.style.display = 'block';
+  }
+  // [4] '더보기' 버튼 클릭 이벤트 핸들러
+
 
   // 3. 메인 페이지 하단 [전주 트렌드 분석] 그래프 그리기 호출
   if (typeof dbTrendArea !== 'undefined') {
@@ -105,8 +143,9 @@ function renderBusinessGrid(dataList) {
     <div class="business-card" onclick="goToDetail('${b.id}')">
       <div class="b-img-wrap">
         <img class="b-img" src="${b.imageUrl}" alt="${b.name}">
-        <span class="b-name" style="font-weight: 700; color: var(--text-1); font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">${b.name}</span>
+       
       </div>
+       <span class="b-name" style="font-weight: 700; color: var(--text-1); font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">${b.name}</span>
       <div class="b-info">
         <div class="b-name-row">
           <span class="b-category-badge">✨${b.category}</span>
@@ -128,6 +167,7 @@ function renderBusinessGrid(dataList) {
     </div>
   `).join('');
 }
+
 
 // -------------------------------------------------------------
 // [DETAIL PAGE] 비동기 데이터 로드 및 전환 연동 (view_*.html 연동)
@@ -233,28 +273,44 @@ function navSearch(q) {
 // [MAIN PAGE] 실시간 데이터 정렬 시스템 
 function handleSort() {
   const sortSelect = document.getElementById('sortSelect');
-  if (!sortSelect || !currentFilteredBusinesses || currentFilteredBusinesses.length === 0) {
-    // 데이터가 없으면 정렬하지 않고 0개 화면 출력
+  
+  // 예외 처리 1: 전체 데이터(businesses)가 없거나 비어있는 경우
+  if (!businesses || businesses.length === 0) {
+    currentFilteredBusinesses = [];
     renderBusinessGrid(currentFilteredBusinesses);
+    toggleMoreButton(0); // 더보기 버튼 숨김
     return;
   }
 
-  const sortValue = sortSelect.value; // 'posRate', 'reviews', 'rating'
+  // 예외 처리 2: 정렬 select 엘리먼트가 없는 경우 기본값 적용 혹은 중단
+  const currentSortType = sortSelect ? sortSelect.value : 'posRate';
 
-  // 원본 데이터가 훼손되지 않도록 복사본(...배열)을 만들어 정렬 진행 (내림차순 정렬 b - a)
-  const sortedData = [...currentFilteredBusinesses].sort((a, b) => {
-    if (sortValue === 'posRate') {
-      return b.posRate - a.posRate;  // 긍정 비율 높은 순
-    } else if (sortValue === 'reviews') {
-      return b.reviews - a.reviews;  // 리뷰 많은 순
-    } else if (sortValue === 'rating') {
-      return b.rating - a.rating;    // 별점 높은 순
-    }
-    return 0;
-  });
+  // 1. 원본 데이터(businesses)가 손상되지 않도록 복사 후 정렬 진행
+  let sortedList = [...businesses];
 
-  // 정렬이 완료된 데이터셋으로 화면 갱신
-  renderBusinessGrid(sortedData);
+  if (currentSortType === 'posRate') {
+    // 긍정 리뷰 비율 높은 순 정렬
+    sortedList.sort((a, b) => b.posRate - a.posRate);
+  } else if (currentSortType === 'reviewCount') {
+    // 리뷰 많은 순 정렬 (작성하신 정렬 조건 변수명에 맞게 수정하세요)
+    sortedList.sort((a, b) => b.reviewCount - a.reviewCount);
+  }
+
+  // 2. 정렬된 전체 데이터에서 현재 인덱스(currentIndex)만큼만 슬라이싱하여 전역 변수에 할당
+  currentFilteredBusinesses = sortedList.slice(0, currentIndex);
+
+  // 예외 처리 3: 슬라이싱된 결과가 비어있는지 체크 (제공해주신 기존 예외 처리 조건 반영)
+  if (!currentFilteredBusinesses || currentFilteredBusinesses.length === 0) {
+    renderBusinessGrid(currentFilteredBusinesses);
+    toggleMoreButton(0);
+    return;
+  }
+
+  // 3. 최종 필터링된 데이터로 화면 그리그 함수 호출
+  renderBusinessGrid(currentFilteredBusinesses);
+
+  // 4. 더보기 버튼 노출 상태 제어 함수 호출
+  toggleMoreButton(businesses.length);
 }
 
 /* ===== RAG AI 어시스턴트 검색 및 인터랙션 오버레이 활성화 ===== */
@@ -483,9 +539,10 @@ function resetToHome() {
   if (navSearchInput) navSearchInput.value = '';
   if (ragInput) ragInput.value = '';
 
-  // 3. 필터링된 배열을 다시 원본(전체 데이터)으로 리셋
+  // 3. 필터링된 배열을 다시 원본(전체 데이터)으로 리셋\
+  currentIndex = 6;
   if (typeof businesses !== 'undefined') {
-    currentFilteredBusinesses = businesses.slice(0, 9);
+    currentFilteredBusinesses = businesses.slice(0, currentIndex);
   }
 
   // 4. index_list.html 타이틀 및 총 개수 텍스트도 초기 렌더링 상태로 복구

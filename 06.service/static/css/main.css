@@ -1,6 +1,6 @@
 :root {
-  --bg: #c2baa7;
-  --bg2: #c2baa7;
+  --bg: #e4e1da;
+  --bg2: #e4e1da;
   --surface: #FFFFFF;
   --primary: #35240f;
   --primary-light: #F5E6DC;
@@ -61,6 +61,11 @@ nav {
   padding: 2px 8px;
   border-radius: 100px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;  
+  line-height: 1;           
 }
 .nav-right { display: flex; gap: 8px; align-items: center; }
 .nav-search {
@@ -111,8 +116,9 @@ nav {
   font-weight: 700;
   color: #FFFFFF;
   line-height: 1.3;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
   position: relative;
+  display: inline-block;
 }
 .hero p {
   color: rgba(255,255,255,0.8);
@@ -120,6 +126,14 @@ nav {
   font-weight: 300;
   margin-bottom: 2rem;
   position: relative;
+}
+
+.title-wrapper {
+  display: inline-flex;     /* 글자 크기만큼만 영역을 잡고 */
+  align-items: center;      /* 세로 축 기준 정중앙 정렬 (뱃지 높이 맞춤) */
+  justify-content: center;  /* 내부 요소를 가로 중앙에 배치 */
+  gap: 12px;                /* 제목과 뱃지 사이의 간격 */
+  margin-bottom: 0.75rem;   /* 기존 h1에 있던 아래 여백을 부모에게 이동 */
 }
 
 /* ===== RAG 검색 UI ===== */
@@ -742,15 +756,16 @@ nav {
   gap: 1rem;
 }
 .business-card {
-  background: var(--surface);
+  background: var(--primary);
   border-radius: 12px;
   border: 1px solid var(--border);
   overflow: hidden;
   cursor: pointer;
   transition: all .2s;
   box-shadow: var(--shadow);
-  padding : 20px;
+  padding : 0px;
   line-height: 180%;
+  color: white;
 }
 .business-card:hover {
   transform: translateY(-2px);
@@ -1139,7 +1154,7 @@ footer {
 .time-tooltip p { margin: 4px 0; display: flex; justify-content: space-between; }
 .time-tooltip .break-time { color: var(--text-3); font-size: 11px; }
 
-.b-img { width: 320px; height: 200px; }
+.b-img { width: 100%; height: 340px; }
 
 /* 워드클라우드 박스 및 배지 */
 .wordcloud-wrap {
@@ -1213,3 +1228,12 @@ footer {
 .page.active {
   display: block !important;
 }
+.b-info {
+  padding-left: 20px;
+  padding-bottom: 20px;
+
+}
+.b-name {
+  padding-left: 20px;
+}
+
