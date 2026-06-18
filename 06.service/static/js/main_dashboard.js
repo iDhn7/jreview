@@ -42,22 +42,18 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 2. 메인 페이지 초기 화면 그리기
-  function initPage() {
-  const sortSelect = document.getElementById('sortSelect');
-  if (sortSelect) {
-    sortSelect.value = 'posRate'; // 기본값 긍정순 설정
-  }
-  
-  // 최초 정렬 및 렌더링 실행
-  handleSort();
+currentFilteredBusinesses = [...businesses];
+
+const sortSelect = document.getElementById('sortSelect');
+
+if (sortSelect) {
+  sortSelect.value = 'posRate'; // 기본값 긍정순 설정
 }
 
-  const sortSelect = document.getElementById('sortSelect');
-  if (sortSelect) sortSelect.value = 'posRate'; // 기본값 긍정순 설정
+// 최초 정렬 및 렌더링 실행
+handleSort();
 
-  // 정렬을 한 번 실행해서 초기 화면 정렬 렌더링
-  handleSort();
-
+  
   const moreButton = document.getElementById('moreBtn'); // 더보기 버튼 ID
   if (currentIndex >= businesses.length) {
     moreButton.style.display = 'none'; // 데이터가 끝났으면 버튼 숨김
@@ -108,6 +104,8 @@ function filterCategory(categoryOrArea) {
 
   // 필터링된 배열을 기억하고 정렬 기믹 호출
   currentFilteredBusinesses = filtered;
+  
+  currentIndex = 6;
 
   // 📢 [추가] index_list.html의 제목과 검색 결과 건수를 동적으로 갱신합니다.
   const titleEl = document.getElementById('listSectionTitle');
@@ -233,7 +231,7 @@ function navSearch(q) {
 
   if (!q) {
     currentFilteredBusinesses = [...businesses]; // 전체 데이터로 초기화
-    
+    currentIndex = 6;
     // 📢 [추가] 빈 검색어 입력 시 초기 타이틀 상태로 리셋 복구
     if (titleEl) titleEl.textContent = '전체 업체 목록';
     if (countEl) countEl.textContent = `총 ${businesses.length.toLocaleString()}개 업체`;
@@ -254,6 +252,7 @@ function navSearch(q) {
 
   // 검색 결과가 0개여도 전체 목록으로 튕기지 않고 빈 배열 그대로 전달
   currentFilteredBusinesses = filtered;
+  currentIndex = 6;
 
   // 📢 [추가/수정] 검색 단어 유입 시 index_list.html 헤더 문자열 연동 제어
   if (titleEl) {
@@ -286,31 +285,26 @@ function handleSort() {
   const currentSortType = sortSelect ? sortSelect.value : 'posRate';
 
   // 1. 원본 데이터(businesses)가 손상되지 않도록 복사 후 정렬 진행
-  let sortedList = [...businesses];
+  let sortedList = [...currentFilteredBusinesses];
 
   if (currentSortType === 'posRate') {
     // 긍정 리뷰 비율 높은 순 정렬
     sortedList.sort((a, b) => b.posRate - a.posRate);
-  } else if (currentSortType === 'reviewCount') {
+  } else if (currentSortType === 'reviews') {
     // 리뷰 많은 순 정렬 (작성하신 정렬 조건 변수명에 맞게 수정하세요)
-    sortedList.sort((a, b) => b.reviewCount - a.reviewCount);
+    sortedList.sort((a, b) => b.reviews - a.reviews);
+  } else if (currentSortType === 'rating') {
+    sortedList.sort((a, b) => b.rating - a.rating);
   }
 
   // 2. 정렬된 전체 데이터에서 현재 인덱스(currentIndex)만큼만 슬라이싱하여 전역 변수에 할당
-  currentFilteredBusinesses = sortedList.slice(0, currentIndex);
-
-  // 예외 처리 3: 슬라이싱된 결과가 비어있는지 체크 (제공해주신 기존 예외 처리 조건 반영)
-  if (!currentFilteredBusinesses || currentFilteredBusinesses.length === 0) {
-    renderBusinessGrid(currentFilteredBusinesses);
-    toggleMoreButton(0);
-    return;
-  }
+  const slicedList = sortedList.slice(0, currentIndex);
 
   // 3. 최종 필터링된 데이터로 화면 그리그 함수 호출
-  renderBusinessGrid(currentFilteredBusinesses);
+  renderBusinessGrid(slicedList);
 
   // 4. 더보기 버튼 노출 상태 제어 함수 호출
-  toggleMoreButton(businesses.length);
+  toggleMoreButton(currentFilteredBusinesses.length);
 }
 
 /* ===== RAG AI 어시스턴트 검색 및 인터랙션 오버레이 활성화 ===== */
@@ -542,7 +536,7 @@ function resetToHome() {
   // 3. 필터링된 배열을 다시 원본(전체 데이터)으로 리셋\
   currentIndex = 6;
   if (typeof businesses !== 'undefined') {
-    currentFilteredBusinesses = businesses.slice(0, currentIndex);
+    currentFilteredBusinesses = [...businesses];
   }
 
   // 4. index_list.html 타이틀 및 총 개수 텍스트도 초기 렌더링 상태로 복구

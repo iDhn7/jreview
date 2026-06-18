@@ -13,6 +13,7 @@ if (typeof kakao !== 'undefined' && kakao.maps) {
 function renderStoreDetail(data) {
   // [보강] 데이터가 유효한지 안전 검사
   if (!data) return;
+  console.log('디테일 접속 완료')
 
   // 1. 가게 기본 정보 바인딩
   if (data.store) {
@@ -211,10 +212,12 @@ function renderStoreDetail(data) {
         }
     }
   }
+  console.log('기본정보 가져옴')
 
   // 2. 메뉴 정보 리스트 동적 생성
   const menuContainer = document.getElementById('menuGrid');
   const menusList = data.menus || data.MENUS || [];
+  console.log("메뉴그리드찾음")
   
   if (menuContainer) {
     if (menusList.length === 0) {
@@ -432,5 +435,7 @@ function renderStoreDetail(data) {
   // 🚀 [마무리 스위치] 모든 DOM 바인딩이 에러 없이 무사히 끝났으므로 화면을 메인에서 상세로 스위칭합니다.
   if (typeof showPage === 'function') {
       showPage('detail');
+      console.log('상세 스위치 완료')
   }
+  
 }
