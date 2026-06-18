@@ -468,3 +468,50 @@ function closeRagOverlay() {
   document.getElementById('ragOverlay').classList.remove('open');
   document.getElementById('ragOverlayBackdrop').classList.remove('open');
 }
+
+function resetToHome() {
+  console.log("🏠 처음 화면으로 돌아갑니다. (데이터 및 UI 초기화)");
+
+  // 1. 상세페이지가 켜져 있다면 메인 뼈대 화면으로 스위칭
+  if (typeof showPage === 'function') {
+    showPage('main');
+  }
+
+  // 2. 검색창(우상단 및 RAG 검색창)에 남아있는 텍스트 초기화
+  const navSearchInput = document.getElementById('navSearchInput'); // 상단 검색창 ID에 맞게 수정 가능
+  const ragInput = document.getElementById('ragInput');
+  if (navSearchInput) navSearchInput.value = '';
+  if (ragInput) ragInput.value = '';
+
+  // 3. 필터링된 배열을 다시 원본(전체 데이터)으로 리셋
+  if (typeof businesses !== 'undefined') {
+    currentFilteredBusinesses = businesses.slice(0, 9);
+  }
+
+  // 4. index_list.html 타이틀 및 총 개수 텍스트도 초기 렌더링 상태로 복구
+  const titleEl = document.getElementById('listSectionTitle');
+  const countEl = document.getElementById('totalCount');
+  if (titleEl) titleEl.textContent = '전체 업체 목록';
+  if (countEl && businesses) {
+    countEl.textContent = `총 ${businesses.length.toLocaleString()}개 업체`;
+  }
+
+  // 5. 활성화되어 있던 카테고리/상권 칩(Chip) 스타일 초기화 ('전체'가 있다면 그것만 active)
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.classList.remove('active');
+    if (chip.textContent.includes('전체')) {
+      chip.classList.add('active');
+    }
+  });
+
+  // 6. 기본 정렬 기준(긍정순)으로 전체 목록 다시 그리기
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) sortSelect.value = 'posRate';
+  
+  if (typeof handleSort === 'function') {
+    handleSort();
+  }
+
+  // 7. 화면을 부드럽게 최상단으로 올리기
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
