@@ -37,13 +37,13 @@ def get_ji_address(full_address):
 class DataProcess:
     def __init__(self):
        # .env 파일은 루트(D:\jreview)에 있으므로 한 단계 위('..')로 올라가서 찾습니다.
-        load_dotenv(dotenv_path='D:\\jreview\\04.data\\.env')
+        load_dotenv(dotenv_path='C:\\code\\jreview\\06.service\\.env')
         
         # CSV 파일 로드 (경로 유지)
         self.df_list   = pd.read_csv('04.data/store_list.csv')
         self.df_info   = pd.read_csv('04.data/store_info.csv')
-        self.df_menu   = pd.read_csv('04.data/menu.csv')
-        self.df_review = pd.read_csv('04.data/review.csv')
+        self.df_menu   = pd.read_csv('04.data/review.csv')
+        self.df_review = pd.read_csv('04.data\\0617전처리\\clean_naver_review.csv')
         
         # DB 매니저 객체 생성
         self.db = DBManager()
@@ -271,7 +271,8 @@ class DataProcess:
             code = item['STORE_CODE']
             # 
             try:
-                items = self.df_review[self.df_review["업체코드"] == code]["리뷰내용"]
+                # 데이터 타입 충돌 오류로 둘다 str로 변환 후 매치
+                items = self.df_review[self.df_review["업체코드"].astype(str) == str(code)]["리뷰내용"]
                 if not items.empty:
                     # AI 분석 함수
                     ai_report = review_improvement_report(items.astype(str).tolist())

@@ -1,47 +1,40 @@
 {# 
   파일명: view_info.html
-  설명: 상세페이지 업체 정보 + 지도 블록
+  설명: 상세페이지 업체 정보
 #}
-<div class="card detail-full">
-      <div class="card-title">업체 정보</div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; gap: 10px;">
-            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">주소</span>
-            <span style="color: var(--text-2);" id="biz-address">-</span>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">주차</span>
-            <span style="color: var(--neg); font-weight: 500;" id="biz-parking">-</span>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">전화</span>
-            <span style="color: var(--text-2);" id="biz-phone">-</span>
-          </div>
-          
-          <!-- 편의성 목록 -->
-          <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <span style="color: var(--text-3); width: 64px; flex-shrink: 0; padding-top: 2px;">편의성</span>
+<div class="card-title">업체 정보</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; box-sizing: border-box;">
+  <div style="font-size: 13px; display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: flex; gap: 10px;">
+      <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">주소</span>
+      <span style="color: var(--text-2);" id="biz-address">-</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">주차</span>
+      <span style="color: var(--neg); font-weight: 500;" id="biz-parking">-</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">전화</span>
+      <span style="color: var(--text-2);" id="biz-phone">-</span>
+    </div>
+    
+    <div style="display: flex; gap: 10px; align-items: flex-start;">
+      <span style="color: var(--text-3); width: 64px; flex-shrink: 0; padding-top: 2px;">편의성</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="biz-amenities-box"></div>
+    </div>
 
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="biz-amenities-box">
-            </div>
-          </div>
-
-            <div style="display: flex; gap: 10px; position: relative;">
-              <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">영업시간</span>
-              
-              <div class="time-hover-container">
-                <span class="time-summary-text" style="width: 64px; flex-shrink: 0;">영업시간 상세보기</span>
-                
-                <div class="time-tooltip" id="biz-hours-tooltip">
-                  영업시간 정보를 불러오는 중입니다...
-                  </div>
-                </div>
-              </div>
-            </div>
-        <div class="map-placeholder" style="width: 100%; height: 300px; border-radius: 8px; border: 1px solid var(--border-2);" id="mapBox">
-          <div class="map-address" id="map-address-display" >가게 위치 정보</div>
+    <div style="display: flex; gap: 10px; position: relative;">
+      <span style="color: var(--text-3); width: 64px; flex-shrink: 0;">영업시간</span>
+      <div class="time-hover-container">
+        <span class="time-summary-text" style="width: 64px; flex-shrink: 0;">영업시간 상세보기</span>
+        <div class="time-tooltip" id="biz-hours-tooltip">
+          영업시간 정보를 불러오는 중입니다...
         </div>
-        
       </div>
     </div>
+  </div>
+  
+  <div class="map-placeholder" style="width: 100%; height: 300px; border-radius: 8px; border: 1px solid var(--border-2);" id="mapBox">
+    <div class="map-address" id="map-address-display">가게 위치 정보</div>
+  </div>
+</div>

@@ -3,8 +3,8 @@
   설명: 메인페이지 업체목록 블록 (제목 표시 및 검색 결과 동적 건수 추가 버전)
 #}
 <div class="business-section">
-      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div class="section-title" id="listSectionTitle" style="font-size: 18px; font-weight: 700; color: var(--text);">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <div class="section-title" id="listSectionTitle" style="font-size: 20px; font-weight: 900; color: var(--text);">
           전체 업체 목록
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
@@ -22,8 +22,8 @@
           <span class="filter-chip" onclick="setFilter(this,'관광지')">🏯 관광지</span>
           <span class="filter-chip" onclick="setFilter(this,'체험')">🎨 체험</span>
         </div>
-        <div style="margin-left: auto; font-size: 14px; color: var(--text-3);">
-          정렬: <select id="sortSelect" onchange="onSortChange()" style="border: none; background: none; font-size: 14px; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer;">
+        <div style="margin-left: auto; font-size: 14px; font-weight: 600; color: var(--text-3);">
+          정렬: <select id="sortSelect" onchange="onSortChange()" style="margin-bottom: 20px; border: none; background: none; font-size: 14.3px; font-weight: 600; color: var(--text-2); font-family: 'Noto Sans KR', sans-serif; cursor: pointer; ">
             <option value="posRate">긍정 비율순</option>
             <option value="reviews">리뷰 많은순</option>
             <option value="rating">별점 높은순</option> 
@@ -34,19 +34,19 @@
       <div class="business-grid" id="businessGrid"></div>
       <div style="display: flex; justify-content: center; width: 100%; margin-top: 1rem; clear: both; margin-bottom: 0;">
         <button id="moreBtn" onclick="handleLoadMore()" style="
-          background: transparent;
-          color: var(--primary);
-          border: 1px solid var(--primary);
+          background: var(--primary);
+          color: var(--surface);
+          border: 2px solid var(--primary-light);
           border-radius: 8px;
           padding: 10px 24px;
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: filter 0.2s ease-in-out;
           width: 100%;
         "
-        onmouseover="this.style.background='var(--primary-light)'"
-        onmouseout="this.style.background='transparent'">
+        onmouseover="this.style.background='var(--primary-light)',this.style.color='var(--primary)'"
+        onmouseout="this.style.background=' var(--primary)',this.style.color=' var(--surface)'">
         맛집 더보기 ᐯ
         </button>
       </div>

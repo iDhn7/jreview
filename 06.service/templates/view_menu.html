@@ -1,11 +1,28 @@
 {# 
   파일명: view_menu.html
-  설명: 상세페이지 메뉴 블록
+  설명: 상세페이지 메뉴
 #}
-<div class="card detail-full">
-      <div class="card-title" style="justify-content: space-between;">
-        메뉴 정보
-        <span style="font-size: 11px; color: var(--text-3); font-weight: 400;">리뷰 언급 빈도 기반 정렬</span>
-      </div>
-      <div id="menuGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;"></div>
+<div class="card-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+  <span>메뉴 정보</span>
+  <span style="font-size: 11px; color: var(--text-3); font-weight: 400;">리뷰 언급 빈도 기반 정렬</span>
+</div>
+
+<div id="menuWrapper" style="max-height: 120px; overflow: hidden; transition: max-height 0.4s ease; width: 100%; position: relative;">
+  
+  <div id="menuGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; width: 100%;"></div>
+
+</div>
+
+<div id="menuMoreBtnWrap" style="width: 100% !important; margin-top: 24px; box-sizing: border-box; padding: 0 16px; position: relative; display: flex; align-items: center; justify-content: center;">
+  
+  <div style="position: absolute; width: 100%; border-top: 1px solid var(--border-2, #eaeaea); z-index: 1;"></div>
+  
+  <button type="button" 
+          onclick="document.getElementById('menuWrapper').style.maxHeight = '10000px'; document.getElementById('menuMoreBtnWrap').style.display = 'none';"
+          style="position: relative; z-index: 2; background: #ffffff; border: none; padding: 0 16px; color: var(--text-2, #666); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px;"
+          onmouseover="this.style.color='var(--primary)';"
+          onmouseout="this.style.color='var(--text-2)';">
+    메뉴 더보기 <span style="font-size: 10px; font-weight: 800; transform: scaleX(1.2); display: inline-block; padding-top: 1px;">∨</span>
+  </button>
+  
 </div>

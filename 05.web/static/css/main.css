@@ -671,9 +671,9 @@
   .region-pct-pos { font-size: 11px; font-weight: 700; color: #1A7A4A; width: 32px; text-align: right; flex-shrink: 0; }
   .region-pct-neg { font-size: 11px; color: #C0392B; width: 28px; flex-shrink: 0; }
   .card {
-    background: var(--surface);
+    background: var(--primary);
     border-radius: 12px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--primary);
     padding: 1.25rem;
     box-shadow: var(--shadow);
   }
@@ -784,12 +784,11 @@
     box-shadow: var(--shadow);
   }
   .business-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary);
+    transform: translateY(-8px);
+    box-shadow:0 10px 25px var(--shadow-lg);
   }
   .business-card-img {
-    width: 100%;
+    width: 100%;  
     height: 120px;
     object-fit: cover;
     background: var(--bg);
@@ -916,7 +915,7 @@
   }
   .detail-meta {
     font-size: 13px;
-    color: var(--text-3);
+    color: var(--primary-light);
     display: flex;
     align-items: center;
     gap: 10px;

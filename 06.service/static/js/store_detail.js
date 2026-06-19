@@ -55,14 +55,35 @@ function renderStoreDetail(data) {
       document.getElementById('detail-pos-pct').textContent = `긍정 ${posRate}%`;
 
     // 카테고리별 감성 이모지 자동 매핑
-    const currentCategory = s.CATEGORY || s.category || '';
-    let icon = '📍';
-    if (currentCategory.includes('한식')) icon = '🍚';
-    else if (currentCategory.includes('카페') || currentCategory.includes('디저트') || currentCategory.includes('빵')) icon = '☕';
-    else if (currentCategory.includes('일식')) icon = '🍣';
+    const mainProvenUrl = s.STORE_IMAGE_URL || s.store_image_url || s.image_url || s.IMAGE_URL; 
     
-    if(document.getElementById('detail-icon')) 
-      document.getElementById('detail-icon').textContent = icon;
+    console.log("📸 상세페이지 검증 스냅샷 - 최종 확정 주소:", mainProvenUrl);
+
+    const iconElement = document.getElementById('detail-icon');
+    if (iconElement) {
+        // http/https로 시작하는 유효한 웹 주소 스펙 검사
+        const hasValidImg = mainProvenUrl && (typeof mainProvenUrl === 'string') && (mainProvenUrl.startsWith('http://') || mainProvenUrl.startsWith('https://'));
+        
+        if (hasValidImg) {
+            // [성공 렌더링]: 데이터가 잡혔다면 고해상도 매핑 가동
+            iconElement.innerHTML = `
+              <img src="${mainProvenUrl}" 
+                   alt="${s.STORE_NAME || '가게 이미지'}" 
+                   style="width: 100%; height: 100%; border-radius: 12px; object-fit: cover; border: 2px solid var(--border-2); vertical-align: middle;"
+                   onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 100\\'><text y=\\'80\\' font-size=\'80\'>🍚</text></svg>';" />
+            `;
+        } else {
+            // [방어 렌더링]: 수집 데이터가 애초에 없을 때 카테고리별 이모지 분기 안착
+            const currentCategory = s.CATEGORY || s.category || '';
+            let defEmoji = '📍';
+            if (currentCategory.includes('한식')) defEmoji = '🍚';
+            else if (currentCategory.includes('카페') || currentCategory.includes('디저트') || currentCategory.includes('빵')) defEmoji = '☕';
+            else if (currentCategory.includes('일식') || currentCategory.includes('초밥')) defEmoji = '🍣';
+            else if (currentCategory.includes('중식')) defEmoji = '🥢';
+            
+            iconElement.innerHTML = `<span style="font-size: 26px; vertical-align: middle; display: inline-block; padding: 4px;">${defEmoji}</span>`;
+        }
+    }
 
     // 별점 그래픽(★) 처리
     const starScore = Math.round(Number(s.STAR || s.star || 0));
@@ -308,12 +329,15 @@ function renderStoreDetail(data) {
     const posReviews = reviewsList.filter(r => (r.REVIEW_PN || r.review_pn || '').toUpperCase() === 'P').slice(0, 2);
     if (posContainer) {
       if (posReviews.length === 0) {
-        posContainer.innerHTML = '<div class="no-data">수집된 긍정 리뷰가 없습니다.</div>';
+        posContainer.innerHTML = `
+          <div style="background: #fafafa; border: 1px dashed var(--border-2, #eaeaea); border-radius: 8px; color: var(--text-3, #888); font-size: 12px; text-align: center; padding: 40px 0; width: 100%; height: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+             🚫 수집된 긍정 리뷰 대표 사례가 없습니다.
+          </div>`;
       } else {
         posContainer.innerHTML = posReviews.map(r => `
-          <div class="review-item review-pos">
-            <div class="review-label">👍 긍정 후기 (점수: ${Number(r.PN_SCORE || r.pn_score || 0).toFixed(2)})</div>
-            <div class="review-text">${r.CONTENT || r.content || ''}</div>
+          <div class="review-item review-pos" style="display: flex; flex-direction: column; flex: 1 1 0%; max-height: 120px; box-sizing: border-box; background: #E6F5ED; border-left: 4px solid #1A7A4A; padding: 12px; border-radius: 4px; overflow-y: auto;">
+            <div class="review-label" style="font-size: 11px; font-weight: 700; color: #1A7A4A; margin-bottom: 4px; flex-shrink: 0;">👍 긍정 후기 (점수: ${Number(r.PN_SCORE || r.pn_score || 0).toFixed(2)})</div>
+            <div class="review-text" style="font-size: 12px; color: #333; line-height: 1.5; word-break: break-all;">${r.CONTENT || r.content || ''}</div>
           </div>
         `).join('');
       }
@@ -326,12 +350,15 @@ function renderStoreDetail(data) {
     
     if (negContainer) {
       if (negReviews.length === 0) {
-        negContainer.innerHTML = '<div class="no-data">수집된 개선 요구 리뷰가 없습니다.</div>';
+        negContainer.innerHTML = `
+          <div style="background: #fafafa; border: 1px dashed var(--border-2, #eaeaea); border-radius: 8px; color: var(--text-3, #888); font-size: 12px; text-align: center; padding: 40px 0; width: 100%; height: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+             🚫 수집된 개선 요구 리뷰 대표 사례가 없습니다.
+          </div>`;
       } else {
         negContainer.innerHTML = negReviews.map(r => `
-          <div class="review-item review-neg">
-            <div class="review-label">👎 개선 요구 후기 (점수: ${Number(r.PN_SCORE || r.pn_score || 0).toFixed(2)})</div>
-            <div class="review-text">${r.CONTENT || r.content || ''}</div>
+          <div class="review-item review-neg" style="display: flex; flex-direction: column; flex: 1 1 0%; max-height: 120px; box-sizing: border-box; background: #FAE8E6; border-left: 4px solid #C0392B; padding: 12px; border-radius: 4px; overflow-y: auto;">
+            <div class="review-label" style="font-size: 11px; font-weight: 700; color: #C0392B; margin-bottom: 4px; flex-shrink: 0;">👎 개선 요구 후기 (점수: ${Number(r.PN_SCORE || r.pn_score || 0).toFixed(2)})</div>
+            <div class="review-text" style="font-size: 12px; color: #333; line-height: 1.5; word-break: break-all;">${r.CONTENT || r.content || ''}</div>
           </div>
         `).join('');
       }
@@ -342,10 +369,70 @@ function renderStoreDetail(data) {
   const reportContainer = document.getElementById('reportGrid');
   if (reportContainer && data.store) {
     const aiReportHtml = data.store.AI_REPORT || data.store.ai_report;
+    
     if (!aiReportHtml || aiReportHtml.trim() === "") {
-      reportContainer.innerHTML = `<div class="no-data" style="grid-column: 1/-1; text-align: center; color: var(--text-3); padding: 20px;">분석된 AI 개선 리포트가 없습니다.</div>`;
+      // 🛡️ 예외 처리: 데이터가 한 건도 없을 때
+      reportContainer.style.display = "block";
+      reportContainer.innerHTML = `
+        <div style="background: #fafafa; border: 1px dashed var(--border-2, #eaeaea); border-radius: 8px; color: var(--text-3, #888); font-size: 13px; text-align: center; padding: 40px 0; width: 100%;">
+          ✦ 현재 해당 매장에 대한 AI 개선 요약 리포트 데이터가 수집 중입니다.
+        </div>`;
     } else {
+      // 임시 주머니를 만들어 노드 개수를 정밀 검사합니다.
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = aiReportHtml;
+      const reportItemsCount = tempDiv.querySelectorAll('.report-item').length;
+
+      // 🎯 [유동형 레이아웃 엔진]
+      // 1개 또는 3개(홀수)일 때는 세로 1열 목록으로 가로를 꽉 채우고(100%),
+      // 2개 또는 4개(짝수)일 때는 깔끔한 2분할 Grid 배열로 스위칭합니다.
+      reportContainer.style.display = "grid";
+      if (reportItemsCount === 1 || reportItemsCount === 3) {
+        reportContainer.style.gridTemplateColumns = "1fr"; // 세로 1줄 나열 (가로 꽉 채움)
+      } else {
+        reportContainer.style.gridTemplateColumns = "repeat(2, 1fr)"; // 2분할 매핑
+      }
+      
+      reportContainer.style.gap = "14px";
+      reportContainer.style.width = "100%";
       reportContainer.innerHTML = aiReportHtml;
+
+      // 실시간 하이재킹 스타일링 가동
+      const items = reportContainer.querySelectorAll('.report-item');
+      items.forEach(item => {
+        item.style.background = "#fff";
+        item.style.border = "1px solid var(--border-2, #eaeaea)";
+        item.style.borderRadius = "8px";
+        item.style.padding = "18px";
+        item.style.display = "flex";
+        item.style.gap = "14px";
+        item.style.alignItems = "flex-start";
+        item.style.boxShadow = "0 2px 8px rgba(0,0,0,0.02)";
+        item.style.boxSizing = "border-box";
+        item.style.width = "100%"; // 100% 유동성 확보
+
+        const label = item.querySelector('.report-label');
+        if (label) {
+          label.style.fontWeight = "700";
+          label.style.fontSize = "14px";
+          label.style.color = "var(--text-1, #111)";
+          label.style.margin = "0 0 6px 0";
+        }
+
+        const desc = item.querySelector('.report-desc');
+        if (desc) {
+          desc.style.fontSize = "12px";
+          desc.style.color = "var(--text-2, #555)";
+          desc.style.lineHeight = "1.65";
+        }
+        
+        const icon = item.querySelector('.report-icon');
+        if (icon) {
+          icon.style.fontSize = "18px";
+          icon.style.lineHeight = "1";
+          icon.style.paddingTop = "2px";
+        }
+      });
     }
   }
 

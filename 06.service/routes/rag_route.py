@@ -26,7 +26,7 @@ try:
             
     # 3. 랭체인 LCEL 대화형 체인(bot_chain) 조립 및 대기 상태 전환
     rag_manager.CreateConversationalChain()
-    print("✨ [RAG Blueprint] RAG 엔진 및 로컬 검색기가 완벽하게 초기화되었습니다.")
+    print(" [RAG Blueprint] RAG 엔진 및 로컬 검색기가 완벽하게 초기화되었습니다.")
 
 except Exception as e:
     print(f"❌ RAGManager 모듈 및 컴포넌트 로드 실패: {e}")

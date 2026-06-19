@@ -150,7 +150,7 @@ class RAGManager:
             )
             
             vector_store.save_local(self.faiss_db_path)
-            print(f"✨ FAISS 인덱스 로컬 빌드 최종 성공! 저장 경로: {self.faiss_db_path}")
+            print(f" FAISS 인덱스 로컬 빌드 최종 성공! 저장 경로: {self.faiss_db_path}")
             
             self.retriever = vector_store.as_retriever(search_kwargs={"k": 3})
             return True

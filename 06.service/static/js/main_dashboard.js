@@ -140,19 +140,26 @@ function renderBusinessGrid(dataList) {
   grid.innerHTML = dataList.map(b => `
     <div class="business-card" onclick="goToDetail('${b.id}')">
       <div class="b-img-wrap">
-        <img class="b-img" src="${b.imageUrl}" alt="${b.name}">
-       
+        <img class="b-img" src="${b.imageUrl}" alt="${b.name}" style="margin-bottom: 8px;">
+        
       </div>
-       <span class="b-name" style="font-weight: 700; color: var(--text-1); font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">${b.name}</span>
+
+      <span class="b-name" style="font-weight: 700; color: var(--text-1); font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">${b.name}</span>
+      
       <div class="b-info">
-        <div class="b-name-row">
-          <span class="b-category-badge">✨${b.category}</span>
-          <span class="b-rating">★ ${Number(b.rating).toFixed(1)}</span>
+        <div class="b-name-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-right: 20px;">
+          <span class="b-category-badge">${b.category}</span>
+
+          <div class="nav-badge" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+            <span class="b-rating" style="color: #ffb300; font-weight: bold;">★ ${Number(b.rating).toFixed(1)}</span><br>
+          </div>   
         </div>
-        <div class="b-meta">
-          <span>📍 ${b.location}</span>
-          <span>•</span>
-          <span>리뷰 ${b.reviews}개</span>
+        <div class="b-meta" style="display: flex; justify-content: space-between; align-items: center; margin-right: 25px;">
+
+          <span> ${b.location}</span>
+          
+          <span class="b-reviews-count" style="color: var(--primary-light);">리뷰 ${b.reviews}개</span>
+
         </div>
         <div class="b-sentiment-bar-wrap">
           <div class="b-sentiment-bar" style="width: ${b.posRate}%"></div>
@@ -441,7 +448,7 @@ function executeRagQuery(query) {
     if (data.recommendations && data.recommendations.length > 0) {
       aiResponseHtml += `
         <div class="rag-recommend-section" style="margin-top: 14px;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--primary, #C8530A); margin-bottom: 6px;">✨ 빅데이터 기반 추천 맛집:</div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--primary, #C8530A); margin-bottom: 6px;"> 빅데이터 기반 추천 맛집:</div>
           <div class="rec-grid" style="display: flex; flex-direction: column; gap: 6px;">
             ${data.recommendations.map(store => `
               <div class="rec-store-item" 
@@ -565,4 +572,160 @@ function resetToHome() {
 
   // 7. 화면을 부드럽게 최상단으로 올리기
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// -------------------------------------------------------------
+// [MAIN PAGE] 하단 [전주 트렌드 분석] 그래프 3종 세트 일괄 가동 처리 (수치 데이터 강화 스펙)
+function initMainTrendCharts(areaData, seasonData, recentData) {
+  console.log("📊 [Chart.js 파이프라인] 지표 데이터 표기 모드로 가동합니다.");
+  
+  // 0. 시스템 CSS 변수 컬러값 추출
+  const style = getComputedStyle(document.documentElement);
+  const vPrimary = style.getPropertyValue('--primary').trim() || '#C8530A';
+  const vPrimaryLight = style.getPropertyValue('--primary-light').trim() || '#fbdcbd';
+  const vPrimaryDark = style.getPropertyValue('--primary-dark').trim() || '#6B2602';
+  const vText2 = style.getPropertyValue('--text-2').trim() || '#718096';
+
+  const chartColors = {
+    '한옥마을': vText2,
+    '전북대': vPrimaryLight,
+    '객사': vPrimaryDark,
+    '신시가지': vPrimary
+  };
+
+  // ==========================================
+  // 📊 CHART 1: 지역별 긍·부정 평가 (우측 긍정 % 표시 완결)
+  // ==========================================
+  const ctxPosNeg = document.getElementById('posNegChart');
+  if (ctxPosNeg && areaData) {
+    const labels = areaData.map(item => item.AREA);
+    const posData = areaData.map(item => parseFloat(item.AVG_PN_RATE || 0));
+    const negData = areaData.map(item => parseFloat(item.AVG_NN_RATE || 0));
+
+    new Chart(ctxPosNeg, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: '긍정', data: posData, backgroundColor: '#4c8377', barThickness: 12, borderRadius: 6 },
+          { label: '부정', data: negData, backgroundColor: '#e47d71', barThickness: 12, borderRadius: 6 }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { stacked: true, max: 100, display: false },
+          y: { stacked: true, grid: { display: false }, ticks: { font: { size: 12, weight: '600' }, color: '#444' } },
+          // 💡 [치트키]: 우측에 레이블 축을 하나 더 선언해서 각 행의 긍정 퍼센트 숫자를 칼정렬로 매핑합니다.
+          yRight: {
+            position: 'right',
+            labels: posData.map(v => `${v.toFixed(1)}%`),
+            grid: { display: false },
+            ticks: { font: { size: 12, weight: '700' }, color: '#4c8377' }
+          }
+        }
+      }
+    });
+  }
+
+  // ==========================================
+  // 🎯 CHART 2: 최근 상권 점유율 (도넛 차트)
+  // ==========================================
+  const ctxRecent = document.getElementById('recentShareChart');
+  const legendRecentEl = document.getElementById('recentChartLegend');
+  
+  if (ctxRecent && recentData) {
+    const labels = recentData.map(item => item.AREA);
+    const ratios = recentData.map(item => parseFloat(item.RATIO || 0));
+    const colors = [vPrimary, vPrimaryLight, vPrimaryDark, vText2];
+
+    new Chart(ctxRecent, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: ratios, backgroundColor: colors, borderWidth: 2, borderColor: '#ffffff' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
+    });
+
+    if (legendRecentEl) {
+      legendRecentEl.innerHTML = recentData.map((recent, idx) => `
+        <div class="legend-item" style="display: flex; align-items: center; font-size: 11px; color: #555; width: 100%;">
+          <div class="legend-color" style="width: 8px; height: 8px; border-radius: 50%; background: ${colors[idx % 4]}; margin-right: 8px; flex-shrink: 0;"></div>
+          <span style="font-weight: 600; width: 55px; color: #333;">${recent.AREA}</span>
+          <span class="legend-percent" style="font-weight: 700; color: #222; margin-left: auto;">${recent.RATIO}%</span>
+          <span style="font-size: 10px; color: #888; margin-left: 6px; font-weight: 400;">(${recent.RECENT_REVIEW_CNT}건)</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  // ==========================================
+  // 📈 CHART 3: 지역별 상권 계절별 추이 (범례에 총 리뷰 수 가공 추가)
+  // ==========================================
+  const ctxSeason = document.getElementById('seasonTrendChart');
+  const legendSeasonEl = document.getElementById('seasonChartLegend');
+  
+  if (ctxSeason) {
+    const seasonsOrder = ['봄', '여름', '가을', '겨울'];
+    const targetAreas = ['한옥마을', '전북대', '객사', '신시가지'];
+
+    const datasets = targetAreas.map(area => {
+      const areaRecords = seasonData ? seasonData.filter(item => item.AREA === area) : [];
+      const dataPoints = seasonsOrder.map(season => {
+        const match = areaRecords.find(item => item.SEASON.includes(season));
+        return match ? parseInt(match.TOTAL_REVIEWS, 10) : 0;
+      });
+
+      return {
+        label: area,
+        data: dataPoints,
+        borderColor: chartColors[area],
+        backgroundColor: 'transparent',
+        borderWidth: 3.5,
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: chartColors[area],
+        pointRadius: 4.5,
+        tension: 0,
+        fill: false
+      };
+    });
+
+    new Chart(ctxSeason, {
+      type: 'line',
+      data: { labels: seasonsOrder, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { left: 40, right: 40, top: 15, bottom: 5 } },
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#555', font: { size: 13, weight: '600' } } },
+          y: { beginAtZero: true, grid: { color: '#eaeaea' }, ticks: { color: '#888', font: { size: 11 } } }
+        }
+      }
+    });
+
+    // 💡 [추가 기능 완결]: 계절별 데이터 리스트를 순회하며 상권별 최근 1년 총합 리뷰 건수를 추출 및 주입합니다.
+    if (legendSeasonEl && seasonData) {
+      legendSeasonEl.innerHTML = targetAreas.map(area => {
+        const areaRecords = seasonData.filter(item => item.AREA === area);
+        // 봄+여름+가을+겨울 데이터 축적 연산
+        const totalReviews = areaRecords.reduce((sum, item) => sum + parseInt(item.TOTAL_REVIEWS || 0, 10), 0);
+        
+        return `
+          <div style="display: flex; align-items: center; font-size: 12px; color: #444; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${chartColors[area]}; display: inline-block;"></span>
+              <span style="font-weight: 600;">${area}</span>
+            </div>
+            <span style="font-size: 11px; color: #666; margin-left: auto; font-weight: 700;">총 ${totalReviews.toLocaleString()}건</span>
+          </div>
+        `;
+      }).join('');
+    }
+  }
 }

@@ -1,26 +1,24 @@
 {# 
   파일명: view_sample.html
-  설명: 상세페이지 리뷰 샘플 블록
+  설명: 상세페이지 리뷰 샘플
 #}
 <div class="card detail-full">
   <div class="card-title">실제 리뷰 샘플</div>
   
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; align-items: stretch;">
     
-    <div>
-      <div style="font-size: 12px; font-weight: 700; color: var(--pos); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-        <span>✓</span> 긍정 리뷰 대표 사례
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <div style="font-size: 12px; font-weight: 700; color: #4c8377; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+        <span style="font-weight: 900;">✓</span> 긍정 리뷰 대표 사례
       </div>
-      <div class="review-list" id="det-pos-list">
-        </div>
+      <div class="review-list" id="det-pos-list" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: stretch; height: 100%;"></div>
     </div>
     
-    <div>
-      <div style="font-size: 12px; font-weight: 700; color: var(--neg); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-        <span>!</span> 부정 리뷰 대표 사례
+    <div style="display: flex; flex-direction: column; height: 100%;">
+      <div style="font-size: 12px; font-weight: 700; color: #e47d71; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+        <span style="font-weight: 900;">!</span> 부정 리뷰 대표 사례
       </div>
-      <div class="review-list" id="det-neg-list">
-        </div>
+      <div class="review-list" id="det-neg-list" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: stretch; height: 100%;"></div>
     </div>
 
   </div>

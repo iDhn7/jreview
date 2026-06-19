@@ -13,7 +13,8 @@ from google import genai
 from google.genai import types
 
 # 🔑 발급받으신 실제 Gemini API Key를 입력하세요.
-GEMINI_API_KEY = 'AQ.Ab8RN6L7NYcZG3wSDCTocYxMTzu_LosahEvJhg6iJ6t-laLiWw'
+#GEMINI_API_KEY = 'AQ.Ab8RN6L7NYcZG3wSDCTocYxMTzu_LosahEvJhg6iJ6t-laLiWw'
+GEMINI_API_KEY = 'AQ.Ab8RN6KuUPQuyD41vFJa4wzpsO9tcnpLgnX9OSEJ-rXx2rnBLA'
 load_dotenv()
 def review_improvement_report(reviews: list) -> str:
     """

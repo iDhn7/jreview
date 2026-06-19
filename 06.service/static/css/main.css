@@ -1,6 +1,6 @@
 :root {
-  --bg: #e4e1da;
-  --bg2: #e4e1da;
+  --bg: #faf9f8;
+  --bg2: #faf9f8;
   --surface: #FFFFFF;
   --primary: #35240f;
   --primary-light: #F5E6DC;
@@ -60,7 +60,7 @@ nav {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 100px;
-  font-weight: 600;
+  font-weight: 900;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -655,7 +655,7 @@ nav {
 .card {
   background: var(--surface);
   border-radius: 12px;
-  border: 1px solid var(--border);
+  border: 2px solid var(--primary);
   padding: 1.25rem;
   box-shadow: var(--shadow);
 }
@@ -663,7 +663,7 @@ nav {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
-  margin-bottom: 1rem;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -758,7 +758,6 @@ nav {
 .business-card {
   background: var(--primary);
   border-radius: 12px;
-  border: 1px solid var(--border);
   overflow: hidden;
   cursor: pointer;
   transition: all .2s;
@@ -767,10 +766,19 @@ nav {
   line-height: 180%;
   color: white;
 }
+.business-card .b-img {
+  transition: transform 0.25s ease;
+}
+
 .business-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25); 
+  filter: brightness(1.12);
+}
+
+/* 카드가 hover 되면 내부 이미지도 같이 */
+.business-card:hover .b-img {
+  transform: scale(1.05);
 }
 .business-card-img {
   width: 100%;
@@ -849,7 +857,7 @@ nav {
 
 /* === DETAIL PAGE === */
 .detail-header {
-  background: var(--surface);
+  background: var(--primary);
   border-bottom: 1px solid var(--border);
   padding: 1.5rem 2rem;
 }
@@ -858,7 +866,7 @@ nav {
   border: none;
   cursor: pointer;
   font-size: 13px;
-  color: var(--text-3);
+  color: var(--primary-light);
   font-family: 'Noto Sans KR', sans-serif;
   display: flex;
   align-items: center;
@@ -890,12 +898,12 @@ nav {
   font-family: 'Noto Sans KR', serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--surface);
   margin-bottom: 4px;
 }
 .detail-meta {
   font-size: 13px;
-  color: var(--text-3);
+  color: var(--primary-light);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -924,6 +932,7 @@ nav {
   position: relative;
   width: 120px; height: 120px;
   flex-shrink: 0;
+  margin-top: 20px;
 }
 .pie-center {
   position: absolute;
